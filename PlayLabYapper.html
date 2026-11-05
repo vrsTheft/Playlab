@@ -195,6 +195,42 @@
   @keyframes ring{0%,100%{box-shadow:0 0 0 0 rgba(61,220,151,.5)}50%{box-shadow:0 0 0 14px rgba(61,220,151,0)}}
   .calling .avatar{animation:ring 1.6s infinite}
 
+
+  /* presence, friends, settings, categories */
+  .pwrap{position:relative;display:inline-flex;flex:none}
+  .pres{position:absolute;right:-3px;bottom:-3px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--side);background:#4a4f63;color:#fff}
+  .pres.on{background:var(--good);color:#06241a}.pres.idle{background:var(--warn);color:#2a1d00}.pres.dnd{background:var(--bad);color:#fff}
+  .fpanel{padding:22px 26px;max-width:780px}
+  .fpanel h2{margin:0 0 4px;font-size:22px}
+  .ftabs{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap}
+  .ftabs button{background:var(--raise);color:var(--muted);padding:7px 14px}.ftabs button.on{background:var(--raise2);color:var(--text)}
+  .frow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--raise);margin-bottom:8px}
+  .frow .grow{flex:1;min-width:0}.frow .fn{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .frow .fs{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .np{display:flex;align-items:center;gap:10px;background:var(--raise);border-radius:12px;padding:10px;text-decoration:none;color:var(--text);margin-top:6px}
+  .np img{width:46px;height:46px;border-radius:8px;flex:none;background:var(--raise2)}
+  .np .t{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .np .a{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .np .s{font-size:11px;color:#1db954;font-weight:700;letter-spacing:.4px}
+  .cathead{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);padding:14px 6px 4px;cursor:pointer;text-transform:uppercase;user-select:none}
+  .cathead:hover{color:var(--text)}
+  .topic{font-weight:400;font-size:13px;color:var(--muted);margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .setwrap{display:flex;gap:20px;align-items:flex-start}
+  .setnav{width:176px;flex:none;position:sticky;top:0}
+  .setnav button{width:100%;justify-content:flex-start;background:transparent;color:var(--muted);margin-bottom:2px;padding:9px 12px}
+  .setnav button.on{background:var(--raise2);color:var(--text)}.setnav button:hover{background:var(--raise)}
+  .setbody{flex:1;min-width:0}
+  .setbody h4{margin:0 0 12px;font-size:18px}
+  .setrow{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--raise);border-radius:12px;margin-bottom:8px}
+  .setrow .grow{flex:1;min-width:0}.setrow .k{font-weight:600}.setrow .v{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .setrow button{padding:7px 14px;font-size:13px}
+  .card.xl{width:min(820px,100%)}
+  select{background:var(--raise2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;width:auto}
+  .overlay.top{z-index:80}
+  .note2{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 2px 14px}
+  .warnbox{background:rgba(255,184,77,.1);border:1px solid rgba(255,184,77,.35);color:#ffd9a0;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;margin-bottom:12px}
+  @media (max-width:720px){ .setwrap{flex-direction:column} .setnav{width:100%;display:flex;gap:4px;overflow-x:auto;position:static} .setnav button{width:auto;white-space:nowrap} }
+
   @media (max-width:1000px){ #app{grid-template-columns:72px 240px minmax(0,1fr)} #members{display:none} }
   @media (max-width:720px){
     #app{grid-template-columns:64px minmax(0,1fr)}
@@ -252,6 +288,12 @@
       <div class="lnk" onclick="logout()">Log out</div>
     </div>
 
+    <div id="panelFix" style="display:none">
+      <p id="fixMsg">This account is missing its username.</p>
+      <div class="btns"><button class="danger" onclick="deleteBrokenAccount()">Delete this account and start over</button></div>
+      <div class="lnk" onclick="logout()">Log out</div>
+    </div>
+
     <div id="err"></div>
   </div>
 </div>
@@ -286,6 +328,7 @@
 
 <div id="media" style="display:none"></div>
 <div id="modalRoot"></div>
+<div id="modalRoot2"></div>
 <div id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -350,7 +393,22 @@ const IC = {
   crown:'<path d="M3 18h18M4 18l-1-10 5 4 4-7 4 7 5-4-1 10"/>',
   zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   upload:'<polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>',
-  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  smartphone:'<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+  tablet:'<rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+  mail:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+  key:'<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  userplus:'<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>',
+  ban:'<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
+  up:'<polyline points="18 15 12 9 6 15"/>',
+  down:'<polyline points="6 9 12 15 18 9"/>',
+  right:'<polyline points="9 18 15 12 9 6"/>',
+  folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
 };
 function svg(name, size){ const s = size || 18; return '<svg class="ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (IC[name] || '') + '</svg>'; }
 function iconEl(name, size){ const s = h('span', 'icw'); s.innerHTML = svg(name, size); return s; }
@@ -379,7 +437,14 @@ const PERMS = {
   manageMessages: ['Manage messages', 'Delete other people\'s messages.'],
   kick:           ['Kick members', 'Remove members from the server.']
 };
-const GLOBAL = { name: 'PlayLab Global', order: ['general','gaming','off-topic','announcements'] };
+const GLOBAL = { name: 'PlayLab Global' };
+function defaultGlobalChannels(){
+  return { general:{name:'general', type:'text', pos:0}, gaming:{name:'gaming', type:'text', pos:1},
+           'off-topic':{name:'off-topic', type:'text', pos:2}, announcements:{name:'announcements', type:'text', pos:3, staff:true} };
+}
+const STATUS = {online:['Online', '#3ddc97'], idle:['Idle', '#ffb84d'], dnd:['Do Not Disturb', '#ff5d73'], invisible:['Invisible', '#6b7088']};
+const SP_POPUP = (() => { try { const q = new URLSearchParams(location.search); return !!(q.get('code') && q.get('state') && q.get('state') === localStorage.getItem('sp_s')); } catch(e){ return false; } })();
+function dispName(p){ return (p && (p.displayName || p.name)) || 'user'; }
 
 function pickColor(seed){ let n = 0; for (const c of String(seed)) n = (n * 31 + c.charCodeAt(0)) >>> 0; return COLORS[n % COLORS.length]; }
 function initials(name){ return (name || '?').trim().slice(0, 2).toUpperCase(); }
@@ -516,17 +581,26 @@ let dmList = {};
 /* ================= ACCOUNTS ================= */
 // Version gate: the database rules only allow clients that announce a version >= the number in the rules.
 // Older copies of PlayLab Yapper never announce one, so they can no longer read or write anything.
-const CLIENT_VERSION = 3;
+const CLIENT_VERSION = 4;
 
 function cleanName(s){ return s.trim().toLowerCase(); }
 function validName(s){ return /^[a-z0-9_]{3,20}$/.test(s); }
 function showErr(m){ $('err').textContent = m || ''; if (m) sfx.error(); }
 function showPanel(name){
-  ['User', 'Email', 'Verify', 'Pick'].forEach(n => { $('panel' + n).style.display = n.toLowerCase() === name ? 'block' : 'none'; });
+  ['User', 'Email', 'Verify', 'Pick', 'Fix'].forEach(n => { $('panel' + n).style.display = n.toLowerCase() === name ? 'block' : 'none'; });
   showErr('');
 }
 function showLogin(){ $('loading').style.display = 'none'; $('login').style.display = 'flex'; $('app').style.display = 'none'; }
 function busy(b){ document.querySelectorAll('#login button').forEach(x => { x.disabled = b; }); }
+let justLoggedIn = false;
+
+/* ---- is a username really taken? (readable before logging in) ---- */
+async function nameTakenByEmailAccount(name){
+  const s = await db.ref('usernames/' + name).get();
+  if (!s.exists()) return false;
+  const k = await db.ref('usernameKinds/' + name).get();
+  return k.val() === 'e';        // owned by a verified-email account, so it is genuinely taken
+}
 
 /* ---- username + password ---- */
 function readForm(){
@@ -537,13 +611,16 @@ function readForm(){
 }
 async function doSignup(){
   const f = readForm(); if (!f) return;
-  showErr(''); busy(true); pendingDisplay = f.raw;
-  try { await auth.createUserWithEmailAndPassword(f.name + FAKE_DOMAIN, f.pass); } catch (e) { showErr(friendly(e)); }
+  showErr(''); busy(true); pendingDisplay = f.raw; justLoggedIn = true;
+  try {
+    if (await nameTakenByEmailAccount(f.name)) { showErr('That username is already taken.'); busy(false); return; }
+    await auth.createUserWithEmailAndPassword(f.name + FAKE_DOMAIN, f.pass);
+  } catch (e) { showErr(friendly(e)); }
   busy(false);
 }
 async function doLogin(){
   const f = readForm(); if (!f) return;
-  showErr(''); busy(true);
+  showErr(''); busy(true); justLoggedIn = true;
   try { await auth.signInWithEmailAndPassword(f.name + FAKE_DOMAIN, f.pass); } catch (e) { showErr(friendly(e)); }
   busy(false);
 }
@@ -558,14 +635,14 @@ function readEmail(){
 }
 async function emailSignup(){
   const f = readEmail(); if (!f) return;
-  showErr(''); busy(true);
+  showErr(''); busy(true); justLoggedIn = true;
   try { const c = await auth.createUserWithEmailAndPassword(f.email, f.pass); await c.user.sendEmailVerification(); }
   catch (e) { showErr(friendly(e)); }
   busy(false);
 }
 async function emailLogin(){
   const f = readEmail(); if (!f) return;
-  showErr(''); busy(true);
+  showErr(''); busy(true); justLoggedIn = true;
   try { await auth.signInWithEmailAndPassword(f.email, f.pass); } catch (e) { showErr(friendly(e)); }
   busy(false);
 }
@@ -581,12 +658,12 @@ async function resendVerify(){
 }
 async function checkVerified(){
   const u = auth.currentUser; if (!u) return;
-  busy(true);
-  try { await u.reload(); } catch(e){}
-  busy(false);
+  busy(true); try { await u.reload(); } catch(e){} busy(false);
   if (auth.currentUser.emailVerified) afterAuth(auth.currentUser);
   else showErr('Not verified yet. Open the link in the email first, then try again.');
 }
+
+/* ---- choose a username (email accounts) ---- */
 async function pickUsername(){
   const raw = $('pickInput').value.trim(), name = cleanName(raw), u = auth.currentUser;
   if (!u) return;
@@ -597,9 +674,44 @@ async function pickUsername(){
     const ex = await db.ref('usernames/' + name).get();
     if (ex.exists() && ex.val() !== u.uid) { showErr('That username is taken. Try another one.'); busy(false); return; }
     if (!ex.exists()) await db.ref('usernames/' + name).set(u.uid);
-    await db.ref('profiles/' + u.uid).set({name: raw, bio: '', color: pickColor(name), created: TS});
+    await db.ref('usernameKinds/' + name).set('e');
+    const ps = await db.ref('profiles/' + u.uid).get();
+    if (ps.exists()) { const up = {name: raw}; if (!ps.val().created) up.created = TS; await db.ref('profiles/' + u.uid).update(up); }
+    else await db.ref('profiles/' + u.uid).set({name: raw, bio: '', color: pickColor(name), created: TS});
     busy(false); afterAuth(u);
   } catch (e) { busy(false); showErr('Could not save your username: ' + e.message); }
+}
+
+/* ---- repairs accounts that lost their username (e.g. deleted and re-created) ---- */
+async function checkIdentity(user, fake){
+  const uid = user.uid, ps = await db.ref('profiles/' + uid).get(), prof = ps.val() || {};
+  const nm = (prof.name || '').toLowerCase();
+  if (nm && validName(nm)) {
+    const m = await db.ref('usernames/' + nm).get();
+    if (m.val() === uid) {
+      db.ref('usernameKinds/' + nm).get().then(k => { if (!k.exists()) db.ref('usernameKinds/' + nm).set(fake ? 'n' : 'e').catch(() => {}); }).catch(() => {});
+      return {ok: true};
+    }
+  }
+  if (fake) {
+    const uname = user.email.split('@')[0];
+    try {
+      await db.ref('usernames/' + uname).set(uid);        // allowed: the login name proves ownership (unless an email account has it)
+      await db.ref('usernameKinds/' + uname).set('n');
+      const disp = (prof.name && prof.name.toLowerCase() === uname) ? prof.name : ((pendingDisplay && pendingDisplay.toLowerCase() === uname) ? pendingDisplay : uname);
+      if (ps.exists()) { const up = {name: disp}; if (!prof.created) up.created = TS; await db.ref('profiles/' + uid).update(up); }
+      else await db.ref('profiles/' + uid).set({name: disp, bio: '', color: pickColor(uname), created: TS});
+      return {ok: true};
+    } catch (e) { return {broken: true, name: uname}; }
+  }
+  return {pick: true};
+}
+async function deleteBrokenAccount(){
+  const u = auth.currentUser; if (!u) return;
+  if (!confirm('Delete this account? You can then sign up again.')) return;
+  busy(true);
+  try { await db.ref('profiles/' + u.uid).remove().catch(() => {}); await u.delete(); location.reload(); }
+  catch (e) { busy(false); showErr(e.code === 'auth/requires-recent-login' ? 'For safety, log out, log in again, then press the button.' : friendly(e)); }
 }
 
 function friendly(e){
@@ -610,16 +722,23 @@ function friendly(e){
     case 'auth/weak-password': return 'Password is too weak. Use at least 6 characters.';
     case 'auth/operation-not-allowed': return 'Email/Password sign-in is not turned on in Firebase yet.';
     case 'auth/too-many-requests': return 'Too many tries. Wait a minute and try again.';
+    case 'auth/requires-recent-login': return 'For safety, please log out and log in again first.';
     case 'auth/network-request-failed': return 'No connection. Check your internet.';
     default: return e.message || 'Something went wrong.';
   }
 }
 
-function logout(){
-  const done = () => auth.signOut().then(() => location.reload());
-  (call ? leaveCall() : Promise.resolve())
-    .then(() => (me.uid ? db.ref('sessions/' + me.uid).remove().catch(() => {}) : null))
-    .then(done, done);
+async function logout(){
+  const done = () => auth.signOut().then(() => location.reload(), () => location.reload());
+  try { if (call) await leaveCall(); } catch(e){}
+  try {
+    if (me.uid) {
+      await db.ref('presence/' + me.uid + '/devices/' + DEVICE_ID).remove().catch(() => {});
+      await db.ref('devices/' + me.uid + '/' + DEVICE_ID).remove().catch(() => {});
+      await db.ref('sessions/' + me.uid).remove().catch(() => {});
+    }
+  } catch(e){}
+  done();
 }
 
 /* ---- session handshake (this is what locks out older versions) ---- */
@@ -631,24 +750,9 @@ async function startSession(){
   document.addEventListener('visibilitychange', () => { if (!document.hidden) beat(); });
 }
 
-async function ensureAccount(user, fake){
-  if (fake) {
-    const uname = user.email.split('@')[0];
-    try { const s = await db.ref('usernames/' + uname).get(); if (!s.exists()) await db.ref('usernames/' + uname).set(user.uid); } catch(e){}
-    try {
-      const p = await db.ref('profiles/' + user.uid).get();
-      if (!p.exists()) {
-        const disp = (pendingDisplay && pendingDisplay.toLowerCase() === uname) ? pendingDisplay : uname;
-        await db.ref('profiles/' + user.uid).set({name: disp, bio: '', color: pickColor(uname), created: TS});
-      }
-    } catch(e){}
-  }
-  try { const a = await db.ref('usernames/' + ADMIN_NAME).get(); ADMIN_UID = a.exists() ? a.val() : null; } catch(e){ ADMIN_UID = null; }
-}
-
 let initializing = false;
 async function afterAuth(user){
-  if (started || initializing) return;
+  if (started || initializing || SP_POPUP) return;
   initializing = true;
   try {
     const fake = (user.email || '').endsWith(FAKE_DOMAIN);
@@ -657,23 +761,35 @@ async function afterAuth(user){
       user = auth.currentUser;
       if (!user.emailVerified) { $('verifyEmail').textContent = user.email; showPanel('verify'); showLogin(); return; }
       await user.getIdToken(true);
-      const p = await db.ref('profiles/' + user.uid).get();
-      if (!p.exists()) { showPanel('pick'); showLogin(); return; }
-      me.name = (p.val().name || '').toLowerCase();
-    } else me.name = user.email.split('@')[0];
+    }
+    const idn = await checkIdentity(user, fake);
+    if (idn.pick) { showPanel('pick'); showLogin(); return; }
+    if (idn.broken) {
+      $('fixMsg').textContent = 'The username "' + idn.name + '" already belongs to another account, so this account has no username and cannot be used. Delete it, then sign up again with a different username.';
+      showPanel('fix'); showLogin(); return;
+    }
     me.uid = user.uid;
-    await ensureAccount(user, fake);
+    const ps = await db.ref('profiles/' + me.uid).get();
+    me.name = ((ps.val() || {}).name || '').toLowerCase();
+    try { const a = await db.ref('usernames/' + ADMIN_NAME).get(); ADMIN_UID = a.exists() ? a.val() : null; } catch(e){ ADMIN_UID = null; }
     isAdmin = ADMIN_UID === me.uid;
     myProfile = await getProfile(me.uid, true);
     try { await startSession(); }
     catch (e) { showPanel(fake ? 'user' : 'email'); showLogin(); showErr('Could not start. Make sure the newest database rules are published.'); return; }
+    const dev = await registerDevice();
+    if (dev === 'revoked') { toast('You were logged out of this device.'); await auth.signOut(); location.reload(); return; }
     started = true;
     $('loading').style.display = 'none'; $('login').style.display = 'none'; $('app').style.display = 'grid';
-    renderUserbar(); startUserServers(); startDmList(); startRings();
-    openChannel('global', 'general'); sfx.join();
+    launchApp();
   } finally { initializing = false; }
 }
+function launchApp(){
+  renderUserbar(); startGlobalServer(); startUserServers(); startDmList(); startRings();
+  startSocial(); startPresence(); startNotifications(); spotifyBoot();
+  openChannel('global', 'general'); sfx.join();
+}
 auth.onAuthStateChanged(user => {
+  if (SP_POPUP) return;
   if (!user) { showPanel('user'); showLogin(); return; }
   afterAuth(user);
 });
@@ -721,16 +837,16 @@ function roundIcon(s, size){   // server icon: uploaded picture or initials
 }
 function renderUserbar(){
   const u = $('userbar'); u.innerHTML = '';
-  const w = h('div', 'who'); w.appendChild(avatarEl(myProfile, 36));
+  const w = h('div', 'who'); w.appendChild(avatarP(myProfile, 36, me.uid));
   const t = h('div'); t.style.minWidth = 0;
-  t.appendChild(h('div', 'nm', myProfile.name || me.name)); t.appendChild(h('div', 'sub', 'Online'));
+  t.appendChild(h('div', 'nm', dispName(myProfile) || me.name));
+  const sub = h('div', 'sub', STATUS[myStatus][0]); sub.style.color = STATUS[myStatus][1]; t.appendChild(sub);
   w.appendChild(t); w.onclick = () => showProfile(me.uid);
   u.appendChild(w);
-  const snd = ibtn(muted ? 'volumex' : 'volume', 'Sound effects on/off', () => {
+  u.append(ibtn(muted ? 'volumex' : 'volume', 'Sound effects on/off', () => {
     muted = !muted; try { localStorage.setItem('yapper_muted', muted ? '1' : '0'); } catch(e){}
     renderUserbar(); if (!muted) sfx.join();
-  });
-  u.append(snd, ibtn('sliders', 'Edit profile', editProfile), ibtn('logout', 'Log out', logout));
+  }), ibtn('sliders', 'Settings', () => openSettings()), ibtn('logout', 'Log out', logout));
 }
 
 /* ================= MODALS ================= */
@@ -795,13 +911,14 @@ function editProfile(){
 }
 
 async function showProfile(uid, sid){
-  const p = await getProfile(uid, uid === me.uid), bl = await getBadges(uid);
+  const p = await getProfile(uid, uid === me.uid), bl = await getBadges(uid), np = await nowPlayingCard(uid);
+  const srv = sid && sid !== 'global' ? srvs[sid] : null;
   modal(card => {
     const banner = h('div', 'pbanner');
     banner.style.backgroundImage = isImg(p.banner) ? 'url(' + p.banner + ')' : 'linear-gradient(135deg,' + (p.color || '#7c6cff') + ',' + (p.color || '#7c6cff') + '44)';
     card.appendChild(banner);
-    const wrap = h('div', 'pavwrap'); wrap.appendChild(avatarEl(p, 80)); card.appendChild(wrap);
-    const nm = h('div', 'pname'); const n = h('span', null, p.name || 'Unknown'); n.style.color = p.color || '#fff'; nm.appendChild(n); card.appendChild(nm);
+    const wrap = h('div', 'pavwrap'); wrap.appendChild(avatarP(p, 80, uid)); card.appendChild(wrap);
+    const nm = h('div', 'pname'); const n = h('span', null, dispName(p)); n.style.color = p.color || '#fff'; nm.appendChild(n); card.appendChild(nm);
     const uname = (p.name || '').toLowerCase();
     card.appendChild(h('div', 'sub', '@' + uname));
     if (bl.length) {
@@ -810,53 +927,67 @@ async function showProfile(uid, sid){
       Object.keys(BADGES).filter(k => bl.includes(k)).forEach(k => bw.appendChild(pillEl(k, true)));
       card.appendChild(bw);
     }
-    if (sid && sid !== 'global' && srvs[sid]) {
+    if (srv) {
       const rl = rolesOf(sid, uid);
-      if (uid === srvs[sid].owner || rl.length) {
+      if (uid === srv.owner || rl.length) {
         card.appendChild(h('label', 'l', 'Roles'));
         const rw = h('div'); rw.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap';
-        if (uid === srvs[sid].owner) { const t = h('span', 'rtag'); t.innerHTML = svg('crown', 13); t.appendChild(h('span', null, 'Owner')); rw.appendChild(t); }
+        if (uid === srv.owner) { const t = h('span', 'rtag'); t.innerHTML = svg('crown', 13); t.appendChild(h('span', null, 'Owner')); rw.appendChild(t); }
         rl.forEach(r => { const t = h('span', 'rtag'); const d = h('i'); d.style.background = r.color || '#888'; t.append(d, h('span', null, r.name)); rw.appendChild(t); });
         card.appendChild(rw);
       }
     }
+    if (np) { card.appendChild(h('label', 'l', 'Connections')); card.appendChild(np); }
     if (p.bio) { card.appendChild(h('label', 'l', 'About me')); card.appendChild(h('div', 'text', p.bio)); }
     if (p.created) { card.appendChild(h('label', 'l', 'Member since')); card.appendChild(h('div', null, new Date(p.created).toLocaleDateString([], {year:'numeric', month:'long', day:'numeric'}))); }
-    // role management inside a server
-    if (sid && sid !== 'global' && srvs[sid] && uid !== me.uid && uid !== srvs[sid].owner) {
-      const roleIds = Object.keys(srvs[sid].roles || {});
+    if (srv && uid !== me.uid && uid !== srv.owner) {
+      const roleIds = Object.keys(srv.roles || {});
       if (can(sid, 'manageRoles') && roleIds.length) {
         card.appendChild(h('label', 'l', 'Assign roles'));
-        roleIds.sort((a, b) => (srvs[sid].roles[a].pos || 0) - (srvs[sid].roles[b].pos || 0)).forEach(rid => {
-          const r = srvs[sid].roles[rid], row = h('div', 'listrow');
+        roleIds.sort((a, b) => (srv.roles[a].pos || 0) - (srv.roles[b].pos || 0)).forEach(rid => {
+          const r = srv.roles[rid], row = h('div', 'listrow');
           const d = h('i'); d.style.cssText = 'width:12px;height:12px;border-radius:50%;flex:none;background:' + (r.color || '#888');
           row.append(d, h('div', 'grow', r.name));
           const has = !!(memberOf(sid, uid) && memberOf(sid, uid).roles && memberOf(sid, uid).roles[rid]);
-          row.appendChild(toggle(has, on => setMemberRole(sid, uid, rid, on)));
-          card.appendChild(row);
+          row.appendChild(toggle(has, on => setMemberRole(sid, uid, rid, on))); card.appendChild(row);
         });
       }
     }
-    const act = [];
-    const close = h('button', 'ghost', 'Close'); close.onclick = closeModal; act.push(close);
-    if (sid && sid !== 'global' && srvs[sid] && uid !== me.uid && uid !== srvs[sid].owner && can(sid, 'kick')) {
-      const k = btnIcon('Kick', 'logout', 'danger', async () => {
-        if (!confirm('Kick ' + (p.name || 'this user') + ' from the server?')) return;
-        try { await db.ref('members/' + sid + '/' + uid).remove(); closeModal(); toast('Member kicked'); } catch (e) { sfx.error(); toast('Could not kick: ' + e.message); }
-      });
-      act.push(k);
+    const act = [], close = h('button', 'ghost', 'Close'); close.onclick = closeModal; act.push(close);
+    if (uid === me.uid) { act.push(btnIcon('Settings', 'sliders', '', () => openSettings('account'))); }
+    else {
+      if (uname) act.push(btnIcon('Message', 'chat', '', () => { closeModal(); openDm(uid, uname); }));
+      if (friends[uid]) act.push(btnIcon('Remove friend', 'x', 'ghost', () => { closeModal(); removeFriend(uid); }));
+      else if (reqOut[uid]) { const b = btnIcon('Request sent', 'check', 'ghost'); b.disabled = true; act.push(b); }
+      else if (reqIn[uid]) act.push(btnIcon('Accept request', 'check', 'good', () => { closeModal(); acceptRequest(uid); }));
+      else act.push(btnIcon('Add friend', 'userplus', '', () => { sendFriendRequest(uname); closeModal(); }));
+      act.push(blocks[uid] ? btnIcon('Unblock', 'check', 'ghost', () => { unblockUser(uid); closeModal(); }) : btnIcon('Block', 'ban', 'ghost', () => { closeModal(); blockUser(uid); }));
+      if (srv && uid !== srv.owner && can(sid, 'kick')) {
+        act.push(btnIcon('Kick', 'logout', 'danger', async () => {
+          if (!confirm('Kick ' + dispName(p) + ' from the server?')) return;
+          try { await db.ref('members/' + sid + '/' + uid).remove(); closeModal(); toast('Member kicked'); } catch (e) { sfx.error(); toast('Could not kick: ' + e.message); }
+        }));
+        act.push(btnIcon('Ban', 'ban', 'danger', async () => {
+          if (!confirm('Ban ' + dispName(p) + '? They will not be able to rejoin.')) return;
+          try { await db.ref().update({['bans/' + sid + '/' + uid]: {by: me.uid, ts: TS}, ['members/' + sid + '/' + uid]: null}); closeModal(); toast('Member banned'); } catch (e) { sfx.error(); toast('Could not ban: ' + e.message); }
+        }));
+      }
     }
-    if (uid === me.uid) act.push(btnIcon('Edit profile', 'sliders', '', editProfile));
-    else if (uname) act.push(btnIcon('Message', 'chat', '', () => { closeModal(); openDm(uid, uname); }));
-    actions(card, act);
+    const a = h('div', 'actions'); a.style.flexWrap = 'wrap'; act.forEach(b => a.appendChild(b)); card.appendChild(a);
   });
 }
 
 /* ================= PERMISSIONS ================= */
+let globalData = null;
+function S(sid){
+  if (sid === 'global') { const g = globalData || {}; return {name: g.name || GLOBAL.name, icon: g.icon, banner: g.banner, desc: g.desc, channels: g.channels || defaultGlobalChannels(), categories: g.categories || {}, roles: {}, owner: null, created: 0}; }
+  return srvs[sid];
+}
+function SPATH(sid){ return sid === 'global' ? 'globalServer' : 'servers/' + sid; }
 function isOwner(sid){ return sid !== 'global' && !!srvs[sid] && srvs[sid].owner === me.uid; }
 function memberOf(sid, uid){ return memCache[sid] && memCache[sid][uid]; }
 function can(sid, perm){
-  if (sid === 'global') return isAdmin && perm === 'manageMessages';
+  if (sid === 'global') return isAdmin && (perm === 'manageServer' || perm === 'manageChannels' || perm === 'manageMessages');
   if (isOwner(sid)) return true;
   const m = memberOf(sid, me.uid), p = (m && m.perms) || {};
   return p.admin === true || p[perm] === true;
@@ -874,26 +1005,58 @@ function nameColorFor(sid, uid, p){
   if (sid && sid !== 'global') { const r = rolesOf(sid, uid)[0]; if (r && r.color) return r.color; }
   return (p && p.color) || '#ffffff';
 }
+function accessFor(sid, roleIds){
+  const out = {}, ch = (srvs[sid] && srvs[sid].channels) || {};
+  Object.keys(ch).forEach(cid => { const c = ch[cid]; if (c.private && c.roles && roleIds.some(r => c.roles[r])) out[cid] = true; });
+  return out;
+}
+async function syncAccess(sid){      // recompute which private channels each member can open
+  const s = srvs[sid]; if (!s) return; const mem = memCache[sid] || {}, up = {};
+  Object.keys(mem).forEach(uid => {
+    if (uid === s.owner) return;
+    const a = accessFor(sid, Object.keys(mem[uid].roles || {}));
+    up['members/' + sid + '/' + uid + '/access'] = Object.keys(a).length ? a : null;
+  });
+  if (Object.keys(up).length) await db.ref().update(up).catch(() => {});
+}
 async function setMemberRole(sid, uid, rid, on){
   try {
     const cur = Object.assign({}, (memberOf(sid, uid) && memberOf(sid, uid).roles) || {});
     if (on) cur[rid] = true; else delete cur[rid];
-    const perms = permsFromRoles(sid, Object.keys(cur));
-    const up = {};
+    const ids = Object.keys(cur), perms = permsFromRoles(sid, ids), acc = accessFor(sid, ids), up = {};
     up['members/' + sid + '/' + uid + '/roles/' + rid] = on ? true : null;
     up['members/' + sid + '/' + uid + '/perms'] = Object.keys(perms).length ? perms : null;
+    up['members/' + sid + '/' + uid + '/access'] = Object.keys(acc).length ? acc : null;
     await db.ref().update(up); sfx.join();
   } catch (e) { sfx.error(); toast('Could not change role: ' + e.message); }
 }
+function canSee(sid, c){
+  if (!c.private || sid === 'global' || isOwner(sid)) return true;
+  const m = memberOf(sid, me.uid) || {};
+  return !!((m.perms && m.perms.admin) || (m.access && m.access[c.id]));
+}
+function chans(sid){
+  const s = S(sid); if (!s) return [];
+  const c = s.channels || {};
+  return Object.keys(c).map(id => Object.assign({id, name: id, type: 'text'}, c[id]))
+    .sort((a, b) => (a.pos != null ? a.pos : 999) - (b.pos != null ? b.pos : 999) || (a.id === 'general' ? -1 : b.id === 'general' ? 1 : a.name.localeCompare(b.name)));
+}
+function cats(sid){
+  const s = S(sid), c = (s && s.categories) || {};
+  return Object.keys(c).map(id => Object.assign({id}, c[id])).sort((a, b) => (a.pos || 0) - (b.pos || 0));
+}
+function getServer(sid){ return S(sid); }
+function startGlobalServer(){
+  db.ref('globalServer').on('value', s => {
+    globalData = s.val(); renderRail();
+    if (view.type === 'srv' && view.sid === 'global') { renderSidebar(); renderTopbar(); renderMain(); }
+  }, () => {});
+}
+async function ensureSeed(sid){
+  if (sid === 'global' && !globalData) { await db.ref('globalServer').set({name: GLOBAL.name, channels: defaultGlobalChannels()}); await waitFor(() => globalData, 2500); }
+}
 
 /* ================= SERVERS ================= */
-function getServer(sid){ return sid === 'global' ? {name: GLOBAL.name} : srvs[sid]; }
-function chans(sid){
-  if (sid === 'global') return GLOBAL.order.map(id => ({id, name: id, type: 'text'}));
-  const c = (srvs[sid] && srvs[sid].channels) || {};
-  return Object.keys(c).map(id => ({id, name: c[id].name || id, type: c[id].type || 'text'}))
-    .sort((a, b) => a.id === 'general' ? -1 : b.id === 'general' ? 1 : a.name.localeCompare(b.name));
-}
 let usRef = null;
 function startUserServers(){
   usRef = db.ref('userServers/' + me.uid);
@@ -905,7 +1068,7 @@ function startUserServers(){
       r.on('value', s => {
         if (!s.exists()) return dropServer(sid);
         srvs[sid] = s.val(); renderRail();
-        if (view.type === 'srv' && view.sid === sid) { renderSidebar(); renderTopbar(); }
+        if (view.type === 'srv' && view.sid === sid) { renderSidebar(); renderTopbar(); renderMain(); }
       }, () => dropServer(sid));
     });
     Object.keys(srvRefs).forEach(sid => {
@@ -922,13 +1085,31 @@ function dropServer(sid){
   renderRail();
 }
 function waitFor(fn, ms){ return new Promise(res => { const t0 = Date.now(); const iv = setInterval(() => { if (fn() || Date.now() - t0 > ms) { clearInterval(iv); res(); } }, 100); }); }
+function slug(s){ return String(s).trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 24); }
+function makeCode(){ const a = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; let c = ''; crypto.getRandomValues(new Uint8Array(8)).forEach(x => { c += a[x % a.length]; }); return c; }
 
-async function createServer(name, iconData){
-  name = name.trim().slice(0, 30); if (!name) { toast('Give your server a name'); sfx.error(); return; }
+const TEMPLATES = {
+  own:       {label: 'Create my own', desc: 'Start with a clean slate.', cats: [], chans: [['general', 'text', -1], ['off-topic', 'text', -1], ['Lounge', 'voice', -1]], roles: []},
+  gaming:    {label: 'Gaming', desc: 'Clips, squads and voice rooms.', cats: ['Text', 'Voice'], chans: [['general', 'text', 0], ['clips', 'text', 0], ['looking-for-group', 'text', 0], ['Game room 1', 'voice', 1], ['Game room 2', 'voice', 1]], roles: [{name: 'Moderator', color: '#3ddc97', perms: {manageMessages: true, kick: true}}]},
+  friends:   {label: 'Friends', desc: 'A hangout for your group.', cats: [], chans: [['general', 'text', -1], ['memes', 'text', -1], ['photos', 'text', -1], ['Hangout', 'voice', -1]], roles: []},
+  study:     {label: 'Study group', desc: 'Homework help and study rooms.', cats: ['Study', 'Voice'], chans: [['general', 'text', 0], ['homework-help', 'text', 0], ['resources', 'text', 0], ['Study room', 'voice', 1]], roles: []},
+  community: {label: 'Community', desc: 'Rules, announcements and a mod team.', cats: ['Info', 'Chat', 'Voice'], chans: [['welcome', 'text', 0], ['general', 'text', 1], ['feedback', 'text', 1], ['Lounge', 'voice', 2]], roles: [{name: 'Moderator', color: '#3ddc97', perms: {manageMessages: true, kick: true, manageChannels: true}}]}
+};
+async function createServer(o){
+  const name = (o.name || '').trim().slice(0, 30); if (!name) { toast('Give your server a name'); sfx.error(); return; }
+  const t = TEMPLATES[o.tpl] || TEMPLATES.own;
   try {
     const sid = db.ref('servers').push().key;
-    const data = {name, owner: me.uid, created: TS, channels: {general:{name:'general', type:'text'}, 'off-topic':{name:'off-topic', type:'text'}, lounge:{name:'Lounge', type:'voice'}}};
-    if (iconData) data.icon = iconData;
+    const catIds = t.cats.map(() => 'c' + Math.random().toString(36).slice(2, 8)), categories = {}, channels = {}, roles = {};
+    t.cats.forEach((n, i) => { categories[catIds[i]] = {name: n, pos: i}; });
+    t.chans.forEach(([n, type, ci], i) => {
+      let id = slug(n) || 'channel'; while (channels[id]) id += '-2';
+      channels[id] = {name: n.slice(0, 24), type, pos: i}; if (ci >= 0) channels[id].cat = catIds[ci];
+    });
+    t.roles.forEach((r, i) => { roles[db.ref('servers/' + sid + '/roles').push().key] = {name: r.name, color: r.color, pos: i, perms: r.perms}; });
+    const data = {name, owner: me.uid, created: TS, channels};
+    if (t.cats.length) data.categories = categories; if (Object.keys(roles).length) data.roles = roles;
+    if (o.icon) data.icon = o.icon; if (o.desc) data.desc = o.desc.trim().slice(0, 120);
     await db.ref('servers/' + sid).set(data);
     await db.ref('members/' + sid + '/' + me.uid).set({joined: TS});
     await db.ref('userServers/' + me.uid + '/' + sid).set(true);
@@ -937,16 +1118,20 @@ async function createServer(name, iconData){
   } catch (e) { sfx.error(); toast('Could not create server: ' + e.message); }
 }
 async function joinServer(code){
-  code = code.trim(); if (!code) return;
+  code = code.trim().replace(/^.*\//, '');
+  if (!/^[A-Za-z0-9]{6,10}$/.test(code)) { toast('That invite code does not look right.'); sfx.error(); return; }
   try {
-    await db.ref('members/' + code + '/' + me.uid).set({joined: TS});
-    await db.ref('userServers/' + me.uid + '/' + code).set(true);
+    const inv = (await db.ref('invites/' + code).get()).val();
+    if (!inv || inv.exp < Date.now()) { toast('This invite is invalid or has expired.'); sfx.error(); return; }
+    if (srvs[inv.sid]) { closeModal(); toast('You are already in that server.'); openChannel(inv.sid, 'general'); return; }
+    await db.ref('members/' + inv.sid + '/' + me.uid).set({joined: TS, via: code});
+    await db.ref('userServers/' + me.uid + '/' + inv.sid).set(true);
     closeModal(); sfx.join(); toast('Joined server');
-    await waitFor(() => srvs[code], 3000); if (srvs[code]) openChannel(code, 'general');
-  } catch (e) { sfx.error(); toast('Invalid invite code'); }
+    await waitFor(() => srvs[inv.sid], 3000); if (srvs[inv.sid]) openChannel(inv.sid, 'general');
+  } catch (e) { sfx.error(); toast('Could not join. The invite may be invalid, or you may be banned.'); }
 }
 function serverModal(){
-  let tab = 'create', icon = null;
+  let tab = 'create', icon = null, tpl = 'own', nameV = '', descV = '';
   modal(card => {
     const draw = () => {
       card.innerHTML = '';
@@ -956,17 +1141,25 @@ function serverModal(){
       t1.onclick = () => { tab = 'create'; draw(); }; t2.onclick = () => { tab = 'join'; draw(); };
       tabs.append(t1, t2); card.appendChild(tabs);
       if (tab === 'create') {
-        const row = h('div'); row.style.cssText = 'display:flex;align-items:center;gap:14px';
-        const prev = h('div', 'ri'); prev.style.cursor = 'pointer'; prev.appendChild(roundIcon({name: card._name || 'S', icon}, 56)); prev.style.width = prev.style.height = '64px';
-        prev.onclick = () => pickFile('image/*', async f => { try { icon = await shrinkImage(f, 128, 128, 0.85); card._name = $('srvName') ? $('srvName').value : card._name; draw(); } catch(e){ toast(e.message); } });
-        row.append(prev, h('div', 'sub', 'Click the circle to upload a server icon (optional).')); row.lastChild.style.margin = '0';
-        card.appendChild(row);
+        card.appendChild(h('label', 'l', 'Start from a template'));
+        Object.keys(TEMPLATES).forEach(k => {
+          const r = h('div', 'listrow'); r.style.cursor = 'pointer'; if (k === tpl) r.style.outline = '2px solid var(--accent)';
+          const g = h('div', 'grow'); g.appendChild(h('div', null, TEMPLATES[k].label)); g.firstChild.style.fontWeight = '600';
+          const d = h('div', null, TEMPLATES[k].desc); d.style.cssText = 'font-size:12px;color:var(--muted);font-weight:400'; g.appendChild(d); r.appendChild(g);
+          r.onclick = () => { nameV = $('srvName').value; descV = $('srvDesc').value; tpl = k; draw(); }; card.appendChild(r);
+        });
+        const row = h('div'); row.style.cssText = 'display:flex;align-items:center;gap:14px;margin-top:14px';
+        const prev = h('div', 'ri'); prev.style.cssText = 'cursor:pointer;width:64px;height:64px'; prev.appendChild(roundIcon({name: nameV || 'S', icon}, 56));
+        prev.onclick = () => pickFile('image/*', async f => { try { icon = await shrinkImage(f, 128, 128, 0.85); nameV = $('srvName').value; descV = $('srvDesc').value; draw(); } catch(e){ toast(e.message); } });
+        const hint = h('div', 'sub', 'Click the circle to upload a server icon (optional).'); hint.style.margin = '0'; row.append(prev, hint); card.appendChild(row);
         card.appendChild(h('label', 'l', 'Server name'));
-        const inp = h('input'); inp.id = 'srvName'; inp.maxLength = 30; inp.placeholder = 'My awesome server'; inp.value = card._name || ''; card.appendChild(inp);
+        const inp = h('input'); inp.id = 'srvName'; inp.maxLength = 30; inp.placeholder = 'My awesome server'; inp.value = nameV; card.appendChild(inp);
+        card.appendChild(h('label', 'l', 'Description (optional)'));
+        const ds = h('input'); ds.id = 'srvDesc'; ds.maxLength = 120; ds.placeholder = 'What is this server about?'; ds.value = descV; card.appendChild(ds);
         const cancel = h('button', 'ghost', 'Cancel'); cancel.onclick = closeModal;
-        const go = h('button', null, 'Create'); go.onclick = () => createServer(inp.value, icon);
+        const go = h('button', null, 'Create'); go.onclick = () => createServer({name: inp.value, icon, tpl, desc: ds.value});
         inp.onkeydown = e => { if (e.key === 'Enter') go.click(); };
-        actions(card, [cancel, go]); setTimeout(() => inp.focus(), 30);
+        actions(card, [cancel, go]);
       } else {
         card.appendChild(h('label', 'l', 'Invite code'));
         const inp = h('input'); inp.placeholder = 'Paste the invite code'; card.appendChild(inp);
@@ -980,29 +1173,37 @@ function serverModal(){
   });
 }
 
+/* ---------- invites and bans ---------- */
+function canInvite(sid){ return can(sid, 'manageServer'); }
+async function createInvite(sid, days){
+  const code = makeCode(), exp = days ? Date.now() + days * 86400000 : 9999999999999;
+  await db.ref().update({['invites/' + code]: {sid, by: me.uid, exp, ts: TS}, ['serverInvites/' + sid + '/' + code]: exp});
+  return code;
+}
+async function copyText(t){ try { await navigator.clipboard.writeText(t); toast('Copied: ' + t); } catch(e){ prompt('Copy this code:', t); } }
+
 function serverMenu(){
-  const sid = view.sid; if (sid === 'global' || !srvs[sid]) return;
+  const sid = view.sid; const s = S(sid); if (!s) return;
   modal(card => {
-    card.appendChild(h('h3', null, srvs[sid].name)); card.appendChild(h('div', 'sub', 'Share the invite code so friends can join.'));
-    const code = h('input'); code.value = sid; code.readOnly = true; code.onclick = () => code.select(); card.appendChild(code);
-    const copy = btnIcon('Copy invite code', 'copy', '', () => { code.select(); try { navigator.clipboard.writeText(sid); } catch(e){ document.execCommand('copy'); } toast('Invite code copied'); });
-    copy.style.cssText = 'margin-top:10px;width:100%'; card.appendChild(copy);
-    const list = h('div'); list.style.marginTop = '18px';
-    if (can(sid, 'manageServer') || can(sid, 'manageChannels') || can(sid, 'manageRoles') || can(sid, 'kick')) {
-      list.appendChild(btnIcon('Server settings', 'sliders', 'menuitem', () => serverSettings(sid)));
-    }
-    if (isOwner(sid)) {
-      const del = btnIcon('Delete server', 'trash', 'menuitem danger', async () => {
-        if (!confirm('Delete this server for everyone? This cannot be undone.')) return;
-        try {
-          await db.ref('messages/' + sid).remove(); await db.ref('members/' + sid).remove();
-          await db.ref('userServers/' + me.uid + '/' + sid).remove(); await db.ref('servers/' + sid).remove();
-          closeModal(); toast('Server deleted');
-        } catch (e) { sfx.error(); toast('Could not delete: ' + e.message); }
-      });
-      list.appendChild(del);
-    } else {
-      list.appendChild(btnIcon('Leave server', 'logout', 'menuitem danger', async () => {
+    card.appendChild(h('h3', null, s.name)); if (s.desc) card.appendChild(h('div', 'sub', s.desc));
+    const list = h('div'); list.style.marginTop = '12px';
+    if (sid !== 'global' && canInvite(sid)) list.appendChild(btnIcon('Create invite (valid 7 days) and copy', 'userplus', 'menuitem', async () => {
+      try { const c = await createInvite(sid, 7); copyText(c); } catch (e) { sfx.error(); toast('Could not create invite: ' + e.message); }
+    }));
+    else if (sid !== 'global') card.appendChild(h('div', 'sub', 'Ask a server admin for an invite code to share.'));
+    if (can(sid, 'manageServer') || can(sid, 'manageChannels') || can(sid, 'manageRoles') || can(sid, 'kick')) list.appendChild(btnIcon('Server settings', 'sliders', 'menuitem', () => serverSettings(sid)));
+    if (sid !== 'global') {
+      if (isOwner(sid)) {
+        list.appendChild(btnIcon('Delete server', 'trash', 'menuitem danger', async () => {
+          if (!confirm('Delete this server for everyone? This cannot be undone.')) return;
+          try {
+            await db.ref('messages/' + sid).remove(); await db.ref('members/' + sid).remove(); await db.ref('bans/' + sid).remove().catch(() => {});
+            await db.ref('serverInvites/' + sid).remove().catch(() => {});
+            await db.ref('userServers/' + me.uid + '/' + sid).remove(); await db.ref('servers/' + sid).remove();
+            closeModal(); toast('Server deleted');
+          } catch (e) { sfx.error(); toast('Could not delete: ' + e.message); }
+        }));
+      } else list.appendChild(btnIcon('Leave server', 'logout', 'menuitem danger', async () => {
         try { await db.ref('members/' + sid + '/' + me.uid).remove(); await db.ref('userServers/' + me.uid + '/' + sid).remove(); closeModal(); toast('You left the server'); }
         catch (e) { sfx.error(); toast('Could not leave: ' + e.message); }
       }));
@@ -1012,64 +1213,167 @@ function serverMenu(){
   });
 }
 
-/* ---------- server settings: overview / channels / roles / members ---------- */
+/* ---------- server settings ---------- */
 function serverSettings(sid, tab){
+  const glob = sid === 'global';
   tab = tab || (can(sid, 'manageServer') ? 'overview' : can(sid, 'manageChannels') ? 'channels' : can(sid, 'manageRoles') ? 'roles' : 'members');
-  const s = srvs[sid]; if (!s) return;
+  const s = S(sid); if (!s) return;
   modal(card => {
     card.appendChild(h('h3', null, s.name + ' settings'));
     const tabs = h('div', 'tabs2'); tabs.style.marginTop = '14px';
-    [['overview', 'Overview', 'manageServer'], ['channels', 'Channels', 'manageChannels'], ['roles', 'Roles', 'manageRoles'], ['members', 'Members', null]].forEach(([k, lbl, perm]) => {
-      if (perm && !can(sid, perm)) return;
+    [['overview', 'Overview', 'manageServer', true], ['channels', 'Channels', 'manageChannels', true], ['roles', 'Roles', 'manageRoles', false], ['invites', 'Invites', 'manageServer', false], ['members', 'Members', null, false]].forEach(([k, lbl, perm, inGlobal]) => {
+      if (glob && !inGlobal) return; if (perm && !can(sid, perm)) return;
       const b = h('button', tab === k ? 'on' : '', lbl); b.onclick = () => serverSettings(sid, k); tabs.appendChild(b);
     });
     card.appendChild(tabs);
-    if (tab === 'overview') settingsOverview(card, sid);
-    if (tab === 'channels') settingsChannels(card, sid);
-    if (tab === 'roles') settingsRoles(card, sid);
-    if (tab === 'members') settingsMembers(card, sid);
+    ({overview: settingsOverview, channels: settingsChannels, roles: settingsRoles, invites: settingsInvites, members: settingsMembers}[tab] || settingsOverview)(card, sid);
   }, true);
 }
 function settingsOverview(card, sid){
-  const s = srvs[sid]; let icon = s.icon || null, name = s.name;
+  const s = S(sid); let icon = s.icon || null, banner = s.banner || null;
   const row = h('div'); row.style.cssText = 'display:flex;align-items:center;gap:14px';
-  const prev = h('div', 'ri'); prev.style.cssText = 'width:64px;height:64px;cursor:pointer'; prev.appendChild(roundIcon({name, icon}, 56));
-  prev.onclick = () => pickFile('image/*', async f => { try { icon = await shrinkImage(f, 128, 128, 0.85); prev.innerHTML = ''; prev.appendChild(roundIcon({name, icon}, 56)); } catch(e){ toast(e.message); } });
-  row.append(prev, h('div', 'sub', 'Click to change the server icon.')); row.lastChild.style.margin = '0'; card.appendChild(row);
-  card.appendChild(h('label', 'l', 'Server name'));
-  const inp = h('input'); inp.maxLength = 30; inp.value = name; card.appendChild(inp);
+  const prev = h('div', 'ri'); prev.style.cssText = 'width:64px;height:64px;cursor:pointer'; prev.appendChild(roundIcon({name: s.name, icon}, 56));
+  prev.onclick = () => pickFile('image/*', async f => { try { icon = await shrinkImage(f, 128, 128, 0.85); prev.innerHTML = ''; prev.appendChild(roundIcon({name: s.name, icon}, 56)); } catch(e){ toast(e.message); } });
+  const hint = h('div', 'sub', 'Click to change the server icon.'); hint.style.margin = '0'; row.append(prev, hint); card.appendChild(row);
+  card.appendChild(h('label', 'l', 'Banner'));
+  const bn = h('div', 'editbanner'); const setB = () => { bn.style.backgroundImage = isImg(banner) ? 'url(' + banner + ')' : 'none'; }; setB();
+  bn.appendChild(btnIcon('Upload banner', 'upload', 'ghost', () => pickFile('image/*', async f => { try { banner = await shrinkImage(f, 720, 240, 0.8); setB(); } catch(e){ toast(e.message); } })));
+  bn.appendChild(ibtn('x', 'Remove banner', () => { banner = null; setB(); }, 'sq')); card.appendChild(bn);
+  card.appendChild(h('label', 'l', 'Server name')); const inp = h('input'); inp.maxLength = 30; inp.value = s.name; card.appendChild(inp);
+  card.appendChild(h('label', 'l', 'Description')); const ds = h('input'); ds.maxLength = 120; ds.value = s.desc || ''; ds.placeholder = 'What is this server about?'; card.appendChild(ds);
   const save = h('button', null, 'Save changes');
   save.onclick = async () => {
-    try { const up = {name: inp.value.trim().slice(0, 30) || s.name}; up.icon = icon || null; await db.ref('servers/' + sid).update(up); sfx.join(); toast('Saved'); }
+    try { await ensureSeed(sid); await db.ref(SPATH(sid)).update({name: inp.value.trim().slice(0, 30) || s.name, icon: icon || null, banner: banner || null, desc: ds.value.trim().slice(0, 120) || null}); sfx.join(); toast('Saved'); }
     catch (e) { sfx.error(); toast('Could not save: ' + e.message); }
   };
   const cl = h('button', 'ghost', 'Close'); cl.onclick = closeModal; actions(card, [cl, save]);
 }
+async function reorder(sid, kind, id, dir, catId){
+  await ensureSeed(sid);
+  const base = SPATH(sid);
+  let list = kind === 'cat' ? cats(sid) : chans(sid).filter(c => (c.cat || null) === (catId || null));
+  const i = list.findIndex(x => x.id === id), j = i + dir; if (i < 0 || j < 0 || j >= list.length) return;
+  const t = list[i]; list[i] = list[j]; list[j] = t;
+  const up = {}; list.forEach((x, n) => { up[base + '/' + (kind === 'cat' ? 'categories/' : 'channels/') + x.id + '/pos'] = n; });
+  await db.ref().update(up).catch(e => toast('Could not move: ' + e.message));
+  await waitFor(() => false, 350); serverSettings(sid, 'channels');
+}
 function settingsChannels(card, sid){
-  card.appendChild(h('div', 'sub', 'Text channels are for chatting. Voice channels are for calls, video and screen sharing.'));
-  chans(sid).forEach(c => {
-    const row = h('div', 'listrow'); row.appendChild(iconEl(c.type === 'voice' ? 'volume' : 'hash', 18)); row.appendChild(h('div', 'grow', c.name));
-    if (c.id !== 'general') row.appendChild(ibtn('trash', 'Delete channel', async () => {
-      if (!confirm('Delete #' + c.name + '?')) return;
-      try { await db.ref('messages/' + sid + '/' + c.id).remove(); await db.ref('servers/' + sid + '/channels/' + c.id).remove(); serverSettings(sid, 'channels'); }
-      catch (e) { sfx.error(); toast('Could not delete: ' + e.message); }
-    }, 'off'));
+  const s = S(sid), glob = sid === 'global';
+  card.appendChild(h('div', 'sub', 'Use categories to organize channels. Text channels are for chatting, voice channels for calls, video and screen sharing' + (glob ? ' (voice is only available in your own servers).' : '.')));
+  card.appendChild(h('label', 'l', 'Categories'));
+  const cl = cats(sid); if (!cl.length) card.appendChild(h('div', 'hint', 'No categories yet.'));
+  cl.forEach((k, i) => {
+    const row = h('div', 'listrow'); row.appendChild(iconEl('folder', 18)); row.appendChild(h('div', 'grow', k.name));
+    row.append(ibtn('up', 'Move up', () => reorder(sid, 'cat', k.id, -1)), ibtn('down', 'Move down', () => reorder(sid, 'cat', k.id, 1)),
+      ibtn('edit', 'Rename', async () => { const v = await ask('Rename category', null, [{label: 'Name', value: k.name, max: 24}], 'Save'); if (!v || !v[0].trim()) return; await db.ref(SPATH(sid) + '/categories/' + k.id + '/name').set(v[0].trim().slice(0, 24)); setTimeout(() => serverSettings(sid, 'channels'), 300); }),
+      ibtn('trash', 'Delete category', async () => {
+        if (!confirm('Delete the category "' + k.name + '"? Its channels are kept.')) return;
+        const up = {}; up[SPATH(sid) + '/categories/' + k.id] = null; chans(sid).filter(c => c.cat === k.id).forEach(c => { up[SPATH(sid) + '/channels/' + c.id + '/cat'] = null; });
+        await db.ref().update(up).catch(e => toast(e.message)); setTimeout(() => serverSettings(sid, 'channels'), 300);
+      }, 'off'));
     card.appendChild(row);
   });
+  const addc = h('div'); addc.style.cssText = 'display:flex;gap:8px;margin-bottom:6px'; const ci = h('input'); ci.placeholder = 'New category name'; ci.maxLength = 24;
+  const cb = btnIcon('Add', 'plus', '', async () => {
+    const n = ci.value.trim(); if (!n) return;
+    try { await ensureSeed(sid); await db.ref(SPATH(sid) + '/categories/' + 'c' + Math.random().toString(36).slice(2, 8)).set({name: n.slice(0, 24), pos: cl.length}); setTimeout(() => serverSettings(sid, 'channels'), 300); }
+    catch (e) { sfx.error(); toast('Could not add: ' + e.message); }
+  });
+  addc.append(ci, cb); card.appendChild(addc);
+
+  card.appendChild(h('label', 'l', 'Channels'));
+  const groups = [{id: null, name: 'No category'}].concat(cl);
+  groups.forEach(g => {
+    const items = chans(sid).filter(c => (c.cat && cl.find(k => k.id === c.cat) ? c.cat : null) === g.id); if (!items.length) return;
+    if (cl.length) { const gl = h('div', 'hint', g.name); gl.style.paddingBottom = '2px'; card.appendChild(gl); }
+    items.forEach(c => {
+      const row = h('div', 'listrow'); row.appendChild(iconEl(c.type === 'voice' ? 'volume' : c.private ? 'lock' : c.staff ? 'bell' : 'hash', 18));
+      row.appendChild(h('div', 'grow', c.name + (c.private ? '  (private)' : c.staff ? '  (staff only)' : '')));
+      row.append(ibtn('up', 'Move up', () => reorder(sid, 'chan', c.id, -1, g.id)), ibtn('down', 'Move down', () => reorder(sid, 'chan', c.id, 1, g.id)), ibtn('edit', 'Edit channel', () => channelEditor(sid, c.id)));
+      if (c.id !== 'general') row.appendChild(ibtn('trash', 'Delete channel', async () => {
+        if (!confirm('Delete #' + c.name + ' and its messages?')) return;
+        try { await db.ref(msgPath(sid, c.id)).remove().catch(() => {}); await db.ref(SPATH(sid) + '/channels/' + c.id).remove(); setTimeout(() => serverSettings(sid, 'channels'), 300); }
+        catch (e) { sfx.error(); toast('Could not delete: ' + e.message); }
+      }, 'off'));
+      card.appendChild(row);
+    });
+  });
   card.appendChild(h('label', 'l', 'New channel'));
-  const inp = h('input'); inp.maxLength = 24; inp.placeholder = 'channel-name'; card.appendChild(inp);
+  const nm = h('input'); nm.maxLength = 24; nm.placeholder = 'channel-name'; card.appendChild(nm);
   let type = 'text'; const tabs = h('div', 'tabs2'); tabs.style.marginTop = '10px';
   const tb = h('button', 'on', 'Text'), vb = h('button', '', 'Voice');
   tb.onclick = () => { type = 'text'; tb.className = 'on'; vb.className = ''; }; vb.onclick = () => { type = 'voice'; vb.className = 'on'; tb.className = ''; };
-  tabs.append(tb, vb); card.appendChild(tabs);
+  tabs.appendChild(tb); if (!glob) tabs.appendChild(vb); card.appendChild(tabs);
+  let sel = null; if (cl.length) { sel = h('select'); const o0 = h('option', null, 'No category'); o0.value = ''; sel.appendChild(o0); cl.forEach(k => { const o = h('option', null, k.name); o.value = k.id; sel.appendChild(o); }); card.appendChild(sel); }
   const add = btnIcon('Create channel', 'plus', '', async () => {
-    let id = inp.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 24);
-    if (!id) { sfx.error(); return; }
-    const have = srvs[sid].channels || {}; let u = id, n = 2; while (have[u]) u = id + '-' + (n++);
-    try { await db.ref('servers/' + sid + '/channels/' + u).set({name: inp.value.trim().slice(0, 24) || u, type}); sfx.join(); serverSettings(sid, 'channels'); }
-    catch (e) { sfx.error(); toast('Could not create: ' + e.message); }
+    const id0 = slug(nm.value); if (!id0) { sfx.error(); return; }
+    const have = s.channels || {}; let id = id0, n = 2; while (have[id]) id = id0 + '-' + (n++);
+    try {
+      await ensureSeed(sid);
+      const data = {name: nm.value.trim().slice(0, 24) || id, type, pos: Object.keys(have).length}; if (sel && sel.value) data.cat = sel.value;
+      await db.ref(SPATH(sid) + '/channels/' + id).set(data); sfx.join(); setTimeout(() => serverSettings(sid, 'channels'), 300);
+    } catch (e) { sfx.error(); toast('Could not create: ' + e.message); }
   });
-  const cl = h('button', 'ghost', 'Close'); cl.onclick = closeModal; actions(card, [cl, add]);
+  const close = h('button', 'ghost', 'Close'); close.onclick = closeModal; actions(card, [close, add]);
+}
+function channelEditor(sid, cid){
+  const s = S(sid), c = chans(sid).find(x => x.id === cid); if (!c) return;
+  const glob = sid === 'global'; let priv = !!c.private, staff = !!c.staff; const roleSet = Object.assign({}, c.roles || {});
+  modal(card => {
+    const draw = () => {
+      card.innerHTML = '';
+      card.appendChild(h('h3', null, 'Edit #' + c.name));
+      card.appendChild(h('label', 'l', 'Channel name')); const nm = h('input'); nm.maxLength = 24; nm.value = c.name; card.appendChild(nm);
+      card.appendChild(h('label', 'l', 'Topic')); const tp = h('input'); tp.maxLength = 100; tp.value = c.topic || ''; tp.placeholder = 'What is this channel for?'; card.appendChild(tp);
+      let sel = null; const cl = cats(sid);
+      if (cl.length) { card.appendChild(h('label', 'l', 'Category')); sel = h('select'); const o0 = h('option', null, 'No category'); o0.value = ''; sel.appendChild(o0); cl.forEach(k => { const o = h('option', null, k.name); o.value = k.id; if (k.id === c.cat) o.selected = true; sel.appendChild(o); }); card.appendChild(sel); }
+      if (glob && c.type !== 'voice') { const r = h('div', 'listrow'); const g = h('div', 'grow'); g.appendChild(h('div', null, 'Staff-only posting')); g.firstChild.style.fontWeight = '600'; const d = h('div', null, 'Only you can post. Everyone can read.'); d.style.cssText = 'font-size:12px;color:var(--muted);font-weight:400'; g.appendChild(d); r.appendChild(g); r.appendChild(toggle(staff, on => { staff = on; })); r.style.marginTop = '14px'; card.appendChild(r); }
+      if (!glob) {
+        const r = h('div', 'listrow'); r.style.marginTop = '14px'; const g = h('div', 'grow'); g.appendChild(h('div', null, 'Private channel')); g.firstChild.style.fontWeight = '600';
+        const d = h('div', null, 'Only the owner, admins and chosen roles can see and use it.'); d.style.cssText = 'font-size:12px;color:var(--muted);font-weight:400'; g.appendChild(d); r.appendChild(g);
+        r.appendChild(toggle(priv, on => { priv = on; draw(); })); card.appendChild(r);
+        if (priv) {
+          const rids = Object.keys(s.roles || {}); if (!rids.length) card.appendChild(h('div', 'hint', 'Create roles first, then choose which roles can use this channel.'));
+          rids.forEach(rid => { const ro = s.roles[rid], rr = h('div', 'listrow'); const dot = h('i'); dot.style.cssText = 'width:12px;height:12px;border-radius:50%;flex:none;background:' + (ro.color || '#888'); rr.append(dot, h('div', 'grow', ro.name)); rr.appendChild(toggle(!!roleSet[rid], on => { if (on) roleSet[rid] = true; else delete roleSet[rid]; })); card.appendChild(rr); });
+        }
+      }
+      const back = h('button', 'ghost', 'Back'); back.onclick = () => serverSettings(sid, 'channels');
+      const save = h('button', null, 'Save');
+      save.onclick = async () => {
+        try {
+          await ensureSeed(sid);
+          const up = {name: nm.value.trim().slice(0, 24) || c.name, topic: tp.value.trim().slice(0, 100) || null, cat: sel && sel.value ? sel.value : null};
+          if (glob) up.staff = staff || null; else { up.private = priv || null; up.roles = priv && Object.keys(roleSet).length ? roleSet : null; }
+          await db.ref(SPATH(sid) + '/channels/' + cid).update(up); if (!glob) setTimeout(() => syncAccess(sid), 800);
+          sfx.join(); serverSettings(sid, 'channels');
+        } catch (e) { sfx.error(); toast('Could not save: ' + e.message); }
+      };
+      actions(card, [back, save]);
+    };
+    draw();
+  });
+}
+function settingsInvites(card, sid){
+  card.appendChild(h('div', 'sub', 'People join with an invite code. Revoke a code to stop anyone new from using it. Existing members stay.'));
+  const row = h('div'); row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px';
+  [['1 day', 1], ['7 days', 7], ['Never expires', 0]].forEach(([l, d]) => row.appendChild(btnIcon('New invite: ' + l, 'plus', 'ghost', async () => {
+    try { const c = await createInvite(sid, d); copyText(c); serverSettings(sid, 'invites'); } catch (e) { sfx.error(); toast('Could not create invite: ' + e.message); }
+  })));
+  card.appendChild(row);
+  const list = h('div'); card.appendChild(list);
+  db.ref('serverInvites/' + sid).get().then(snap => {
+    const all = snap.val() || {}, codes = Object.keys(all).filter(c => all[c] > Date.now());
+    if (!codes.length) list.appendChild(h('div', 'hint', 'No active invites.'));
+    codes.forEach(c => {
+      const r = h('div', 'listrow'); const g = h('div', 'grow', c); g.style.fontFamily = 'monospace'; r.appendChild(g);
+      r.appendChild(h('div', 'hint', all[c] > 9e12 ? 'Never expires' : 'Expires ' + new Date(all[c]).toLocaleDateString()));
+      r.appendChild(ibtn('copy', 'Copy', () => copyText(c)));
+      r.appendChild(ibtn('trash', 'Revoke', async () => { await db.ref().update({['invites/' + c]: null, ['serverInvites/' + sid + '/' + c]: null}).catch(e => toast(e.message)); serverSettings(sid, 'invites'); }, 'off'));
+      list.appendChild(r);
+    });
+  }).catch(e => list.appendChild(h('div', 'hint', 'Could not load invites: ' + e.message)));
+  const cl = h('button', 'ghost', 'Close'); cl.onclick = closeModal; actions(card, [cl]);
 }
 function settingsRoles(card, sid){
   card.appendChild(h('div', 'sub', 'Roles give members a color and permissions. Assign them from a member\'s profile.'));
@@ -1136,23 +1440,35 @@ async function deleteRole(sid, rid){
     const up = {}, mem = memCache[sid] || {};
     Object.keys(mem).forEach(uid => {
       const m = mem[uid]; if (!m.roles || !m.roles[rid]) return;
-      const rest = Object.keys(m.roles).filter(r => r !== rid), merged = permsFromRoles(sid, rest);
+      const rest = Object.keys(m.roles).filter(r => r !== rid), merged = permsFromRoles(sid, rest), acc = accessFor(sid, rest);
       up['members/' + sid + '/' + uid + '/roles/' + rid] = null;
       up['members/' + sid + '/' + uid + '/perms'] = Object.keys(merged).length ? merged : null;
+      up['members/' + sid + '/' + uid + '/access'] = Object.keys(acc).length ? acc : null;
     });
     up['servers/' + sid + '/roles/' + rid] = null;
     await db.ref().update(up); serverSettings(sid, 'roles');
   } catch (e) { sfx.error(); toast('Could not delete role: ' + e.message); }
 }
 async function settingsMembers(card, sid){
-  card.appendChild(h('div', 'sub', 'Click a member to view their profile, change roles or kick them.'));
+  card.appendChild(h('div', 'sub', 'Click a member to view their profile, change roles, kick or ban them.'));
   const list = h('div'); card.appendChild(list);
   const mem = memCache[sid] || {};
   for (const uid of Object.keys(mem)) {
     const p = await getProfile(uid), row = h('div', 'listrow'); row.style.cursor = 'pointer';
-    row.appendChild(avatarEl(p, 34));
-    const nm = h('div', 'grow', (p.name || 'user') + (uid === srvs[sid].owner ? '  (owner)' : '')); nm.style.color = nameColorFor(sid, uid, p); row.appendChild(nm);
+    row.appendChild(avatarP(p, 34, uid));
+    const nm = h('div', 'grow', dispName(p) + (uid === srvs[sid].owner ? '  (owner)' : '')); nm.style.color = nameColorFor(sid, uid, p); row.appendChild(nm);
     row.onclick = () => showProfile(uid, sid); list.appendChild(row);
+  }
+  if (can(sid, 'kick')) {
+    card.appendChild(h('label', 'l', 'Banned'));
+    const bl = h('div'); card.appendChild(bl);
+    db.ref('bans/' + sid).get().then(async snap => {
+      const b = snap.val() || {}, ids = Object.keys(b); if (!ids.length) bl.appendChild(h('div', 'hint', 'Nobody is banned.'));
+      for (const uid of ids) {
+        const p = await getProfile(uid), r = h('div', 'listrow'); r.appendChild(h('div', 'grow', dispName(p)));
+        r.appendChild(btnIcon('Unban', 'check', 'ghost', async () => { await db.ref('bans/' + sid + '/' + uid).remove().catch(e => toast(e.message)); serverSettings(sid, 'members'); })); bl.appendChild(r);
+      }
+    }).catch(() => {});
   }
   const cl = h('button', 'ghost', 'Close'); cl.onclick = closeModal; actions(card, [cl]);
 }
@@ -1168,7 +1484,7 @@ function curChannel(){ if (view.type !== 'srv') return null; return chans(view.s
 function openChannel(sid, cid){
   detach(); stopFeed();
   if (!getServer(sid)) return goHome();
-  const list = chans(sid), ch = list.find(c => c.id === cid) || list.find(c => c.type === 'text') || list[0];
+  const list = chans(sid).filter(c => canSee(sid, c)), ch = list.find(c => c.id === cid) || list.find(c => c.type === 'text') || list[0];
   if (!ch) return goHome();
   view = {type:'srv', sid, cid: ch.id}; $('sidebar').classList.remove('open');
   if (sid !== 'global') { loadMembers(sid); watchVoice(sid); }
@@ -1186,10 +1502,12 @@ function renderAll(){ renderRail(); renderSidebar(); renderTopbar(); renderMembe
 function totalUnread(){ return Object.keys(dmList).filter(isUnread).length; }
 function renderRail(){
   const r = $('rail'); r.innerHTML = '';
-  const home = h('div', 'ri home' + (view.type === 'home' || view.type === 'dm' ? ' active' : '')); home.title = 'Direct Messages'; home.innerHTML = svg('zap', 24);
-  const n = totalUnread(); if (n) home.appendChild(h('div', 'dot', String(n)));
+  const home = h('div', 'ri home' + (view.type === 'home' || view.type === 'dm' ? ' active' : '')); home.title = 'Direct Messages and friends'; home.innerHTML = svg('zap', 24);
+  const n = totalUnread() + Object.keys(reqIn).length; if (n) home.appendChild(h('div', 'dot', String(n)));
   home.onclick = goHome; r.appendChild(home); r.appendChild(h('div', 'sep'));
-  const g = h('div', 'ri' + (view.type === 'srv' && view.sid === 'global' ? ' active' : '')); g.title = GLOBAL.name; g.innerHTML = svg('globe', 24);
+  const gs = S('global');
+  const g = h('div', 'ri' + (isImg(gs.icon) ? ' has-img' : '') + (view.type === 'srv' && view.sid === 'global' ? ' active' : '')); g.title = gs.name;
+  if (isImg(gs.icon)) g.appendChild(roundIcon(gs)); else g.innerHTML = svg('globe', 24);
   g.onclick = () => openChannel('global', 'general'); r.appendChild(g);
   Object.keys(srvs).sort((a, b) => (srvs[a].created || 0) - (srvs[b].created || 0)).forEach(sid => {
     const s = srvs[sid];
@@ -1197,58 +1515,70 @@ function renderRail(){
     e.appendChild(roundIcon(s)); e.onclick = () => openChannel(sid, 'general'); r.appendChild(e);
   });
   const add = h('div', 'ri add'); add.title = 'Add a server'; add.innerHTML = svg('plus', 22); add.onclick = serverModal; r.appendChild(add);
+  if (typeof updateTitle === 'function') updateTitle();
 }
 
+const collapsedCats = {};
 function renderSidebar(){
-  const head = $('sbHead'), body = $('sbBody'); head.innerHTML = ''; body.innerHTML = '';
+  const head = $('sbHead'), body = $('sbBody'); head.innerHTML = ''; body.innerHTML = ''; head.style.backgroundImage = '';
   if (view.type !== 'srv') {
     head.appendChild(h('span', 'nm', 'Direct Messages'));
-    const f = h('div', 'finder'); const inp = h('input'); inp.placeholder = 'Find a username'; inp.autocapitalize = 'none';
+    const fr = h('div', 'item' + (view.type === 'home' ? ' active' : '')); fr.appendChild(iconEl('users', 18)); fr.appendChild(h('span', 't', 'Friends'));
+    const pc = Object.keys(reqIn).length; if (pc) fr.appendChild(h('span', 'badge-n', String(pc))); fr.onclick = goHome; body.appendChild(fr);
+    const f = h('div', 'finder'); f.style.paddingTop = '10px'; const inp = h('input'); inp.placeholder = 'Find a username'; inp.autocapitalize = 'none';
     const go = h('button', null, 'Go'); go.onclick = () => startDm(inp.value); inp.onkeydown = e => { if (e.key === 'Enter') go.click(); };
     f.append(inp, go); body.appendChild(f);
+    body.appendChild(h('div', 'label', 'Messages'));
     const ids = Object.keys(dmList).sort((a, b) => (dmList[b].ts || 0) - (dmList[a].ts || 0));
     if (!ids.length) body.appendChild(h('div', 'hint', 'No conversations yet. Type a username above to start one. DMs are saved and only you and the other person can read them.'));
     ids.forEach(uid => {
       const it = h('div', 'item' + (view.type === 'dm' && view.uid === uid ? ' active' : '') + (isUnread(uid) ? ' unread' : ''));
-      const slot = h('div'); slot.style.width = '28px'; slot.style.height = '28px'; it.appendChild(slot);
+      const slot = h('div'); slot.style.cssText = 'width:32px;height:32px'; it.appendChild(slot);
       const nm = h('span', 't', '...'); it.appendChild(nm);
       if (isUnread(uid)) it.appendChild(h('span', 'unr'));
-      getProfile(uid).then(p => { nm.textContent = p.name || 'user'; slot.replaceWith(avatarEl(p, 28)); it.onclick = () => openDm(uid, (p.name || '').toLowerCase()); });
+      getProfile(uid).then(p => { nm.textContent = dispName(p); slot.replaceWith(avatarP(p, 32, uid)); it.onclick = () => openDm(uid, (p.name || '').toLowerCase()); });
       body.appendChild(it);
     });
     return;
   }
-  const s = getServer(view.sid); if (!s) return;
+  const sid = view.sid, s = getServer(sid); if (!s) return;
   head.appendChild(h('span', 'nm', s.name));
-  if (view.sid !== 'global') head.appendChild(ibtn('more', 'Server menu', serverMenu));
-  const list = chans(view.sid);
-  const sect = (label, type) => {
-    const items = list.filter(c => c.type === type); if (!items.length) return;
-    body.appendChild(h('div', 'label', label));
-    items.forEach(c => {
-      const it = h('div', 'item' + (c.id === view.cid ? ' active' : ''));
-      it.appendChild(iconEl(c.id === 'announcements' ? 'bell' : type === 'voice' ? 'volume' : 'hash', 17));
-      it.appendChild(h('span', 't', c.name));
-      it.onclick = () => openChannel(view.sid, c.id); body.appendChild(it);
-      if (type === 'voice') {
-        const parts = (voiceCache[view.sid] && voiceCache[view.sid][c.id]) || {};
-        Object.keys(parts).forEach(uid => {
-          const row = h('div', 'vpart'); const slot = h('div'); slot.style.cssText = 'width:22px;height:22px'; row.appendChild(slot);
-          const nm = h('span', null, parts[uid].name || 'user'); row.appendChild(nm);
-          if (parts[uid].muted) { const mi = iconEl('micoff', 13); mi.style.color = 'var(--bad)'; row.appendChild(mi); }
-          getProfile(uid).then(p => slot.replaceWith(avatarEl(p, 22)));
-          body.appendChild(row);
-        });
-      }
-    });
+  if (isImg(s.banner)) { head.style.backgroundImage = 'linear-gradient(rgba(10,11,16,.55),rgba(10,11,16,.78)), url(' + s.banner + ')'; head.style.backgroundSize = 'cover'; head.style.backgroundPosition = 'center'; }
+  head.appendChild(ibtn('more', 'Server menu', serverMenu));
+  const list = chans(sid).filter(c => canSee(sid, c)), cl = cats(sid);
+  const chanItem = c => {
+    const it = h('div', 'item' + (c.id === view.cid ? ' active' : ''));
+    it.appendChild(iconEl(c.type === 'voice' ? 'volume' : c.private ? 'lock' : c.staff ? 'bell' : 'hash', 17));
+    it.appendChild(h('span', 't', c.name)); it.onclick = () => openChannel(sid, c.id); body.appendChild(it);
+    if (c.type === 'voice') {
+      const parts = (voiceCache[sid] && voiceCache[sid][c.id]) || {};
+      Object.keys(parts).forEach(uid => {
+        const row = h('div', 'vpart'); const slot = h('div'); slot.style.cssText = 'width:22px;height:22px'; row.appendChild(slot);
+        row.appendChild(h('span', null, parts[uid].name || 'user'));
+        if (parts[uid].muted) { const mi = iconEl('micoff', 13); mi.style.color = 'var(--bad)'; row.appendChild(mi); }
+        getProfile(uid).then(p => slot.replaceWith(avatarEl(p, 22))); body.appendChild(row);
+      });
+    }
   };
-  sect('Text channels', 'text'); sect('Voice channels', 'voice');
-  if (view.sid === 'global') body.appendChild(h('div', 'hint', 'Everyone on PlayLab Yapper can see these channels. Announcements is staff-only.'));
+  const known = id => cl.find(k => k.id === id);
+  const uncat = list.filter(c => !c.cat || !known(c.cat));
+  if (!cl.length) {
+    [['Text channels', 'text'], ['Voice channels', 'voice']].forEach(([lbl, type]) => { const items = uncat.filter(c => c.type === type); if (!items.length) return; body.appendChild(h('div', 'label', lbl)); items.forEach(chanItem); });
+  } else {
+    uncat.forEach(chanItem);
+    cl.forEach(k => {
+      const items = list.filter(c => c.cat === k.id), key = sid + ':' + k.id, closed = !!collapsedCats[key];
+      const hd = h('div', 'cathead'); hd.appendChild(iconEl(closed ? 'right' : 'down', 12)); hd.appendChild(h('span', null, k.name));
+      hd.onclick = () => { collapsedCats[key] = !closed; renderSidebar(); }; body.appendChild(hd);
+      (closed ? items.filter(c => c.id === view.cid) : items).forEach(chanItem);
+    });
+  }
+  if (sid === 'global') body.appendChild(h('div', 'hint', 'Everyone on PlayLab Yapper can see these channels.'));
 }
 
 function renderTopbar(){
   const t = $('title'), a = $('topActions'); t.innerHTML = ''; a.innerHTML = '';
-  if (view.type === 'home') { t.appendChild(h('span', null, 'Home')); return; }
+  if (view.type === 'home') { t.appendChild(iconEl('users', 18)); t.appendChild(h('span', null, 'Friends')); return; }
   if (view.type === 'dm') {
     t.appendChild(iconEl('user', 18)); t.appendChild(h('span', null, view.name));
     a.append(ibtn('phone', 'Voice call', () => startDmCall(view.uid, view.name, false)), ibtn('video', 'Video call', () => startDmCall(view.uid, view.name, true)));
@@ -1256,6 +1586,7 @@ function renderTopbar(){
   }
   const c = curChannel(); if (!c) return;
   t.appendChild(iconEl(c.type === 'voice' ? 'volume' : 'hash', 18)); t.appendChild(h('span', null, c.name));
+  if (c.topic) t.appendChild(h('span', 'topic', c.topic));
 }
 
 let pendingFiles = [];
@@ -1268,11 +1599,10 @@ function renderMain(){
     if (view.type === 'dm') { ok = true; ph = 'Message @' + view.name; }
     else if (view.type === 'srv') {
       const c = curChannel();
-      ok = !!c && c.type === 'text' && !(view.sid === 'global' && view.cid === 'announcements' && !isAdmin);
+      ok = !!c && c.type === 'text' && !(c.staff && !isAdmin);
       ph = 'Message #' + (c ? c.name : '');
     }
-    if (view.type === 'home') { msgs.innerHTML = ''; const e = h('div', 'empty'); e.innerHTML = svg('chat', 44); e.appendChild(h('div', null, 'Pick a conversation, or find someone by username to start one.')); e.firstChild.style.margin = '0 auto 12px'; msgs.appendChild(e); }
-    if (view.type === 'srv' && !ok) { const c = curChannel(); if (c && c.type === 'text') { /* locked channel */ } }
+    if (view.type === 'home') renderFriendsPanel();
   }
   comp.style.display = (!stage && ok) ? 'block' : 'none';
   pend.style.display = (!stage && ok && pendingFiles.length) ? 'flex' : 'none';
@@ -1335,7 +1665,7 @@ function appendRow(m, mid, f){
     const head = h('div', 'head'), nm = h('span', 'name', m.name || '...'); nm.onclick = () => showProfile(m.uid, sid);
     const bd = h('span', 'badges'); fillBadges(bd, m.uid);
     head.append(nm, bd, h('span', 'time', fmtTime(ts))); body.appendChild(head); row.append(av, body);
-    getProfile(m.uid).then(p => { nm.textContent = p.name || m.name || 'user'; nm.style.color = nameColorFor(sid, m.uid, p); const n = avatarEl(p, 42); n.onclick = () => showProfile(m.uid, sid); av.replaceWith(n); });
+    getProfile(m.uid).then(p => { nm.textContent = p.displayName || p.name || m.name || 'user'; nm.style.color = nameColorFor(sid, m.uid, p); const n = avatarEl(p, 42); n.onclick = () => showProfile(m.uid, sid); av.replaceWith(n); });
   } else row.append(h('div', 'gut', new Date(ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})), body);
   if (m.text) { const t = h('div', 'text'); renderText(t, m.text); body.appendChild(t); }
   const atts = attsOf(m);
@@ -1407,7 +1737,7 @@ async function sendMsg(){
       up['userDms/' + other + '/' + me.uid] = {ts: TS, from: me.uid};
       await db.ref().update(up);
     }
-  } catch (e) { input.placeholder = oldPh; sfx.error(); toast('Could not send: ' + e.message); }
+  } catch (e) { input.placeholder = oldPh; sfx.error(); toast(/permission/i.test(e.message || '') ? (view.type === 'dm' ? "Couldn't send. This person may have blocked you or only accepts messages from friends." : 'You do not have permission to post here.') : 'Could not send: ' + e.message); }
   btn.disabled = false;
 }
 $('input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
@@ -1415,6 +1745,13 @@ $('input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); 
 async function runCommand(text){
   const [cmd, ...args] = text.slice(1).split(/\s+/);
   if (cmd === 'badges') { toast('Badges: ' + Object.keys(BADGES).join(', ')); return true; }
+  if (cmd === 'release') {
+    const nm = (args[0] || '').toLowerCase().replace(/^@/, '');
+    if (!validName(nm) || nm === ADMIN_NAME) { toast('Usage: /release <username>'); sfx.error(); return true; }
+    try { await db.ref('usernameKinds/' + nm).remove(); await db.ref('usernames/' + nm).remove(); delete uidCache[nm]; sfx.join(); toast('Released "' + nm + '". Someone can sign up with it again.'); }
+    catch (e) { sfx.error(); toast('Failed: ' + e.message); }
+    return true;
+  }
   if (cmd === 'grant' || cmd === 'revoke') {
     const user = (args[0] || '').toLowerCase().replace(/^@/, ''), b = (args[1] || '').toLowerCase();
     if (!user || !BADGES[b]) { toast('Usage: /' + cmd + ' <username> <badge>   (see /badges)'); sfx.error(); return true; }
@@ -1455,9 +1792,9 @@ async function renderMembersPanel(){
       if (!g.list.length) return;
       pane.appendChild(h('div', 'label', g.label + ' - ' + g.list.length));
       g.list.sort((a, b) => (a.p.name || '').localeCompare(b.p.name || '')).forEach(({uid, p}) => {
-        const row = h('div', 'mem'); row.appendChild(avatarEl(p, 34));
+        const row = h('div', 'mem'); row.appendChild(avatarP(p, 34, uid));
         const wrap = h('div'); wrap.style.minWidth = 0;
-        const nm = h('div', 'mn', p.name || 'user'); nm.style.color = nameColorFor(sid, uid, p); wrap.appendChild(nm);
+        const nm = h('div', 'mn', dispName(p)); nm.style.color = nameColorFor(sid, uid, p); wrap.appendChild(nm);
         const bd = h('span', 'badges'); fillBadges(bd, uid); wrap.appendChild(bd);
         row.appendChild(wrap); row.onclick = () => showProfile(uid, sid); pane.appendChild(row);
       });
@@ -1466,10 +1803,11 @@ async function renderMembersPanel(){
     const p = await getProfile(view.uid); if (tok !== memToken) return;
     const banner = h('div'); banner.style.cssText = 'height:70px;border-radius:12px;background-size:cover;background-position:center;' + (isImg(p.banner) ? 'background-image:url(' + p.banner + ')' : 'background:linear-gradient(135deg,' + (p.color || '#7c6cff') + ',' + (p.color || '#7c6cff') + '44)');
     pane.appendChild(banner);
-    const av = avatarEl(p, 64); av.style.cssText += ';margin:-30px 0 8px 10px;border:4px solid var(--side)'; av.onclick = () => showProfile(view.uid); pane.appendChild(av);
-    const nm = h('div', 'pname', p.name || view.name); nm.style.cssText = 'font-size:18px;padding:0 6px'; nm.style.color = p.color || '#fff'; pane.appendChild(nm);
+    const av = avatarP(p, 64, view.uid); av.style.cssText += ';margin:-30px 0 8px 10px'; av.onclick = () => showProfile(view.uid); pane.appendChild(av);
+    const nm = h('div', 'pname', dispName(p) || view.name); nm.style.cssText = 'font-size:18px;padding:0 6px'; nm.style.color = p.color || '#fff'; pane.appendChild(nm);
     const bd = h('div', 'badges'); bd.style.cssText = 'padding:6px'; fillBadges(bd, view.uid); pane.appendChild(bd);
     if (p.bio) { const b = h('div', 'hint', p.bio); pane.appendChild(b); }
+    nowPlayingCard(view.uid).then(el => { if (el && tok === memToken) pane.appendChild(el); });
   } else if (view.type === 'srv') {
     pane.appendChild(h('div', 'label', 'PlayLab Global'));
     pane.appendChild(h('div', 'hint', 'Everyone using PlayLab Yapper can chat here. Click a name to see their profile and badges.'));
@@ -1495,6 +1833,7 @@ function startDmList(){
     Object.keys(v).forEach(o => {
       const prev = dmList[o], nw = v[o];
       if (dmInit && nw.from && nw.from !== me.uid && (!prev || (nw.ts || 0) > (prev.ts || 0)) && !(view.type === 'dm' && view.uid === o)) sfx.dm();
+      if (dmInit && nw.from && nw.from !== me.uid && (!prev || (nw.ts || 0) > (prev.ts || 0))) getProfile(o).then(p => notify('dm', dispName(p), 'sent you a message', 'dm' + o));
     });
     dmList = v; dmInit = true;
     if (view.type === 'dm' && dmList[view.uid]) markRead(view.uid);
@@ -1781,7 +2120,7 @@ async function startDmCall(uid, name, video){
   try { await rr.set({name: myProfile.name || me.name, kind: video ? 'video' : 'voice', ts: TS}); rr.onDisconnect().remove(); }
   catch (e) { toast('Could not ring them: ' + e.message); leaveCall(); return; }
   ringStart();
-  c.ringTimeout = setTimeout(() => { if (call === c && Object.keys(c.peers).length < 2) { toast('No answer.'); leaveCall(); } }, 45000);
+  c.ringTimeout = setTimeout(() => { if (call === c && Object.keys(c.peers).length < 2) { toast('No answer.'); leaveCall(); } }, 15000);
   rr.on('value', s => {
     if (s.exists() || call !== c || c.ringRef !== rr) return;
     setTimeout(() => { if (call === c && Object.keys(c.peers).length < 2) { toast(name + ' declined the call.'); leaveCall(); } }, 1500);
@@ -1802,6 +2141,8 @@ function incomingCall(from, m){
   });
   $('modalRoot').firstChild.onclick = null;
   ringStart();
+  notify('call', m.name || 'Someone', 'is calling you', 'call');
+  setTimeout(() => { if (incoming && incoming.from === from) { incoming = null; ringStop(); closeModal(); } }, 20000);
 }
 function declineCall(){
   const inc = incoming; if (!inc) return; incoming = null; ringStop(); closeModal();
@@ -1820,6 +2161,518 @@ async function acceptCall(){
 $('userInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('passInput').focus(); });
 $('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 window.addEventListener('beforeunload', () => { if (call && call.meRef) call.meRef.remove(); });
+/* ================= SECOND-LEVEL DIALOGS ================= */
+function overlay2(build){
+  const o = h('div', 'overlay top'), c = h('div', 'card'); o.appendChild(c);
+  o.onclick = e => { if (e.target === o) closeModal2(); };
+  build(c); $('modalRoot2').innerHTML = ''; $('modalRoot2').appendChild(o); return c;
+}
+function closeModal2(){ $('modalRoot2').innerHTML = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal2(); });
+// asks for one or more text values; resolves with an array of strings, or null if cancelled
+function ask(title, sub, fields, okLabel){
+  return new Promise(res => overlay2(card => {
+    card.appendChild(h('h3', null, title)); if (sub) card.appendChild(h('div', 'sub', sub));
+    const inputs = fields.map(f => {
+      const i = h('input'); i.type = f.type || 'text'; i.placeholder = f.placeholder || ''; i.value = f.value || ''; if (f.max) i.maxLength = f.max;
+      i.autocomplete = f.type === 'password' ? 'current-password' : 'off'; i.autocapitalize = 'none'; card.append(h('label', 'l', f.label), i); return i;
+    });
+    const cancel = h('button', 'ghost', 'Cancel'); cancel.onclick = () => { closeModal2(); res(null); };
+    const ok = h('button', null, okLabel || 'Confirm'); ok.onclick = () => { const v = inputs.map(i => i.value); closeModal2(); res(v); };
+    inputs[inputs.length - 1].onkeydown = e => { if (e.key === 'Enter') ok.click(); };
+    actions(card, [cancel, ok]); setTimeout(() => inputs[0].focus(), 30);
+  }));
+}
+async function reauth(){
+  const u = auth.currentUser; if (!u || !u.email) return false;
+  const v = await ask('Confirm your password', 'Enter your current password to continue.', [{label: 'Current password', type: 'password'}]);
+  if (!v) return false;
+  try { await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, v[0])); return true; }
+  catch (e) { toast(friendly(e)); sfx.error(); return false; }
+}
+
+/* ================= DEVICES ================= */
+const DEVICE_ID = (() => {
+  try { let d = localStorage.getItem('yapper_device'); if (!d) { d = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('yapper_device', d); } return d; }
+  catch(e){ return 'dev' + Math.random().toString(36).slice(2, 10); }
+})();
+const DEV = (() => {
+  const ua = navigator.userAgent;
+  const type = /iPad|Tablet|Android(?!.*Mobile)/i.test(ua) ? 'tablet' : /Mobi|iPhone|Android/i.test(ua) ? 'phone' : 'pc';
+  const br = /Edg\//.test(ua) ? 'Edge' : /OPR\/|Opera/.test(ua) ? 'Opera' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
+  const os = /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /iPhone|iPad|iOS/.test(ua) ? 'iOS' : /Mac OS/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : 'Unknown';
+  return {type, label: br + ' on ' + os};
+})();
+function devIcon(t){ return t === 'pc' ? 'screen' : t === 'tablet' ? 'tablet' : 'smartphone'; }
+async function registerDevice(){
+  const r = db.ref('devices/' + me.uid + '/' + DEVICE_ID);
+  try {
+    const old = (await r.get()).val();
+    if (old && old.revoked === true && !justLoggedIn) return 'revoked';
+    await r.set({type: DEV.type, label: DEV.label, created: (old && old.created) || TS, last: TS});
+    r.child('revoked').on('value', s => { if (s.val() === true) { toast('You were logged out from another device.'); setTimeout(logout, 1200); } });
+    setInterval(() => r.child('last').set(TS).catch(() => {}), 10 * 60 * 1000);
+  } catch(e){}
+  return 'ok';
+}
+
+/* ================= PRESENCE (online + device icon) ================= */
+let myStatus = 'online', idleOn = false, lastActive = Date.now();
+const presData = {}, presRefs = {}, presSubs = {}, presGlobal = [];
+async function startPresence(){
+  try { const s = await db.ref('private/' + me.uid + '/status').get(); if (s.exists() && STATUS[s.val()]) myStatus = s.val(); } catch(e){}
+  db.ref('.info/connected').on('value', s => { if (s.val()) publishPresence(); });
+  const act = () => { lastActive = Date.now(); if (idleOn) { idleOn = false; pushIdle(); } };
+  ['mousemove', 'keydown', 'pointerdown', 'touchstart', 'scroll'].forEach(ev => window.addEventListener(ev, act, {passive: true}));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) act(); });
+  setInterval(() => { if (!idleOn && Date.now() - lastActive > 300000) { idleOn = true; pushIdle(); } }, 30000);
+  watchPres(me.uid); renderUserbar();
+}
+function pushIdle(){ if (myStatus !== 'invisible') db.ref('presence/' + me.uid + '/devices/' + DEVICE_ID + '/idle').set(idleOn).catch(() => {}); }
+function publishPresence(){
+  const base = db.ref('presence/' + me.uid), dref = base.child('devices/' + DEVICE_ID);
+  if (myStatus === 'invisible') { dref.remove().catch(() => {}); base.child('dnd').remove().catch(() => {}); return; }
+  dref.onDisconnect().remove(); dref.set({type: DEV.type, idle: idleOn}).catch(() => {});
+  base.child('dnd').onDisconnect().remove();
+  if (myStatus === 'dnd') base.child('dnd').set(true).catch(() => {}); else base.child('dnd').remove().catch(() => {});
+}
+function setStatus(st){
+  myStatus = st; db.ref('private/' + me.uid + '/status').set(st).catch(() => {});
+  publishPresence(); renderUserbar();
+}
+function watchPres(uid){
+  if (presRefs[uid]) return;
+  const r = db.ref('presence/' + uid); presRefs[uid] = r;
+  r.on('value', s => {
+    presData[uid] = s.val() || {};
+    presSubs[uid] = (presSubs[uid] || []).filter(f => f() !== false);
+    presGlobal.forEach(f => f());
+  }, () => {});
+}
+function presOf(uid){
+  const d = presData[uid], ds = d && d.devices ? Object.values(d.devices) : [];
+  if (!ds.length) return {state: 'off'};
+  const type = ds.some(x => x.type === 'pc') ? 'pc' : ds[0].type;
+  return {state: d.dnd ? 'dnd' : (ds.every(x => x.idle) ? 'idle' : 'on'), type};
+}
+function presBadge(uid, size){
+  size = size || 16;
+  const el = h('span', 'pres'); el.style.width = el.style.height = size + 'px';
+  const paint = () => {
+    const p = presOf(uid); el.className = 'pres ' + p.state;
+    el.innerHTML = p.state === 'off' ? '' : svg(devIcon(p.type), Math.max(8, Math.round(size * 0.62)));
+    el.title = p.state === 'off' ? 'Offline' : ({on: 'Online', idle: 'Idle', dnd: 'Do Not Disturb'}[p.state]) + ' on ' + (p.type === 'pc' ? 'a computer' : p.type === 'tablet' ? 'a tablet' : 'a phone');
+  };
+  const sub = () => { if (el.isConnected) { el.__m = true; paint(); } else if (el.__m) return false; return true; };
+  (presSubs[uid] = presSubs[uid] || []).push(sub); paint(); watchPres(uid); return el;
+}
+function avatarP(p, size, uid){
+  const w = h('span', 'pwrap'); w.appendChild(avatarEl(p, size)); w.appendChild(presBadge(uid, Math.max(14, Math.round(size * 0.44)))); return w;
+}
+
+/* ================= NOTIFICATIONS ================= */
+let notifPrefs = {dm: true, call: true, friend: true};
+try { notifPrefs = Object.assign(notifPrefs, JSON.parse(localStorage.getItem('yapper_notif') || '{}')); } catch(e){}
+function saveNotifPrefs(){ try { localStorage.setItem('yapper_notif', JSON.stringify(notifPrefs)); } catch(e){} }
+function startNotifications(){
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('yapper-sw.js').catch(() => {});
+  updateTitle();
+}
+function updateTitle(){
+  const n = (typeof totalUnread === 'function' ? totalUnread() : 0) + Object.keys(reqIn).length;
+  document.title = (n ? '(' + n + ') ' : '') + 'PlayLab Yapper';
+}
+// shows a system notification when the tab is in the background (not focused, minimized, or another tab is open)
+function notify(kind, title, body, tag){
+  if (!notifPrefs[kind] || myStatus === 'dnd') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!document.hidden && document.hasFocus()) return;
+  const opts = {body, tag: tag || kind, renotify: true};
+  try { const n = new Notification(title, opts); n.onclick = () => { window.focus(); n.close(); }; }
+  catch (e) { if (navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => r && r.showNotification(title, opts)).catch(() => {}); }
+}
+async function enableNotifications(){
+  if (!('Notification' in window)) { toast('This browser does not support notifications.'); return false; }
+  const p = await Notification.requestPermission();
+  if (p !== 'granted') { toast('Notifications are blocked. Allow them in your browser\'s site settings.'); return false; }
+  toast('Notifications are on.'); return true;
+}
+
+/* ================= FRIENDS, BLOCKS, PRIVACY ================= */
+let friends = {}, reqIn = {}, reqOut = {}, blocks = {}, myPrivacy = {dm: 'everyone', req: 'everyone'}, friendsTab = 'online', socialInit = false;
+function startSocial(){
+  const me_ = me.uid;
+  db.ref('friends/' + me_).on('value', s => { friends = s.val() || {}; Object.keys(friends).forEach(watchPres); socialChanged(); }, () => {});
+  db.ref('friendReq/' + me_).on('value', s => {
+    const nw = s.val() || {};
+    if (socialInit) Object.keys(nw).forEach(u => { if (!reqIn[u]) { sfx.dm(); getProfile(u).then(p => notify('friend', 'Friend request', dispName(p) + ' wants to be your friend.', 'fr' + u)); } });
+    reqIn = nw; socialChanged();
+  }, () => {});
+  db.ref('friendOut/' + me_).on('value', s => { reqOut = s.val() || {}; socialChanged(); }, () => {});
+  db.ref('blocks/' + me_).on('value', s => { blocks = s.val() || {}; socialChanged(); }, () => {});
+  db.ref('privacy/' + me_).on('value', s => { myPrivacy = Object.assign({dm: 'everyone', req: 'everyone'}, s.val() || {}); }, () => {});
+  setTimeout(() => { socialInit = true; }, 3000);
+  presGlobal.push(() => { if (view.type === 'home' && friendsTab === 'online') clearTimeout(socialChanged.t2), socialChanged.t2 = setTimeout(renderFriendsPanel, 150); });
+}
+function socialChanged(){
+  clearTimeout(socialChanged.t);
+  socialChanged.t = setTimeout(() => { renderRail(); if (view.type === 'home') { renderSidebar(); renderFriendsPanel(); } updateTitle(); }, 60);
+}
+async function sendFriendRequest(raw){
+  const name = cleanName(raw || '');
+  if (!validName(name)) { toast('Enter a valid username.'); sfx.error(); return; }
+  if (name === me.name) { toast("You can't add yourself."); sfx.error(); return; }
+  const uid = await getUid(name).catch(() => null);
+  if (!uid) { toast('No user called "' + name + '".'); sfx.error(); return; }
+  if (friends[uid]) { toast('You are already friends.'); return; }
+  if (reqIn[uid]) return acceptRequest(uid);
+  try {
+    await db.ref().update({['friendReq/' + uid + '/' + me.uid]: {ts: TS}, ['friendOut/' + me.uid + '/' + uid]: {ts: TS}});
+    sfx.send(); toast('Friend request sent to ' + name + '.');
+  } catch (e) { sfx.error(); toast('Could not send. They may not accept friend requests.'); }
+}
+async function acceptRequest(uid){
+  try {
+    await db.ref().update({['friends/' + me.uid + '/' + uid]: true, ['friends/' + uid + '/' + me.uid]: true,
+      ['friendReq/' + me.uid + '/' + uid]: null, ['friendOut/' + uid + '/' + me.uid]: null});
+    sfx.join();
+  } catch (e) { sfx.error(); toast('Could not accept: ' + e.message); }
+}
+function declineRequest(uid){ db.ref().update({['friendReq/' + me.uid + '/' + uid]: null, ['friendOut/' + uid + '/' + me.uid]: null}).catch(() => {}); }
+function cancelRequest(uid){ db.ref().update({['friendReq/' + uid + '/' + me.uid]: null, ['friendOut/' + me.uid + '/' + uid]: null}).catch(() => {}); }
+async function removeFriend(uid){
+  if (!confirm('Remove this friend?')) return;
+  try { await db.ref().update({['friends/' + me.uid + '/' + uid]: null, ['friends/' + uid + '/' + me.uid]: null}); } catch (e) { toast('Could not remove: ' + e.message); }
+}
+async function blockUser(uid){
+  if (!confirm('Block this user? They will not be able to message or call you.')) return;
+  try {
+    await db.ref('blocks/' + me.uid + '/' + uid).set(true);
+    await db.ref().update({['friends/' + me.uid + '/' + uid]: null, ['friends/' + uid + '/' + me.uid]: null}).catch(() => {});
+    toast('User blocked.');
+  } catch (e) { toast('Could not block: ' + e.message); }
+}
+function unblockUser(uid){ db.ref('blocks/' + me.uid + '/' + uid).remove().catch(() => {}); }
+
+function friendRow(uid, buttons){
+  const row = h('div', 'frow'), slot = h('div'); slot.style.cssText = 'width:40px;height:40px'; row.appendChild(slot);
+  const g = h('div', 'grow'), fn = h('div', 'fn', '...'), fs = h('div', 'fs', ''); g.append(fn, fs); row.appendChild(g);
+  getProfile(uid).then(p => { fn.textContent = dispName(p); fn.style.color = p.color || ''; slot.replaceWith(avatarP(p, 40, uid)); row.__p = p; });
+  nowPlayingText(uid).then(t => { fs.textContent = t || ''; });
+  buttons.forEach(b => row.appendChild(b));
+  return row;
+}
+function renderFriendsPanel(){
+  if (view.type !== 'home') return;
+  const box = $('msgs'); box.innerHTML = ''; box.style.display = 'block';
+  const w = h('div', 'fpanel'); w.appendChild(h('h2', null, 'Friends'));
+  const pend = Object.keys(reqIn).length;
+  const tabs = h('div', 'ftabs');
+  [['online', 'Online'], ['all', 'All'], ['pending', 'Pending' + (pend ? ' (' + pend + ')' : '')], ['add', 'Add friend']].forEach(([k, l]) => {
+    const b = h('button', friendsTab === k ? 'on' : '', l); b.onclick = () => { friendsTab = k; renderFriendsPanel(); }; tabs.appendChild(b);
+  });
+  w.appendChild(tabs);
+  const msgBtn = uid => ibtn('chat', 'Message', async () => { const p = await getProfile(uid); openDm(uid, (p.name || '').toLowerCase()); }, 'sq');
+  const rmBtn = uid => ibtn('x', 'Remove friend', () => removeFriend(uid), 'sq red');
+  if (friendsTab === 'online' || friendsTab === 'all') {
+    let ids = Object.keys(friends);
+    if (friendsTab === 'online') ids = ids.filter(u => presOf(u).state !== 'off');
+    if (!ids.length) w.appendChild(h('div', 'hint', friendsTab === 'online' ? 'None of your friends are online right now.' : 'No friends yet. Use "Add friend" to send a request.'));
+    ids.forEach(u => w.appendChild(friendRow(u, [msgBtn(u), rmBtn(u)])));
+  } else if (friendsTab === 'pending') {
+    const ins = Object.keys(reqIn), outs = Object.keys(reqOut);
+    if (!ins.length && !outs.length) w.appendChild(h('div', 'hint', 'No pending friend requests.'));
+    if (ins.length) w.appendChild(h('div', 'label', 'Incoming'));
+    ins.forEach(u => w.appendChild(friendRow(u, [ibtn('check', 'Accept', () => acceptRequest(u), 'sq live'), ibtn('x', 'Decline', () => declineRequest(u), 'sq red')])));
+    if (outs.length) w.appendChild(h('div', 'label', 'Sent'));
+    outs.forEach(u => w.appendChild(friendRow(u, [ibtn('x', 'Cancel request', () => cancelRequest(u), 'sq')])));
+  } else {
+    w.appendChild(h('div', 'sub', 'Type their username to send a friend request.')); w.lastChild.style.cssText = 'color:var(--muted);font-size:13px;margin-bottom:10px';
+    const row = h('div'); row.style.cssText = 'display:flex;gap:8px;max-width:420px';
+    const i = h('input'); i.placeholder = 'Username'; i.autocapitalize = 'none'; const b = h('button', null, 'Send request');
+    b.onclick = async () => { await sendFriendRequest(i.value); i.value = ''; }; i.onkeydown = e => { if (e.key === 'Enter') b.click(); };
+    row.append(i, b); w.appendChild(row);
+  }
+  box.appendChild(w);
+}
+/* ================= SPOTIFY CONNECTION ================= */
+// To turn this on: create a free app at developer.spotify.com/dashboard, copy its Client ID here,
+// and add the "Redirect URI" shown in Settings > Connections to the app's settings.
+const SPOTIFY_CLIENT_ID = '';
+const SPOTIFY_SCOPES = 'user-read-currently-playing user-read-playback-state';
+function spRedirect(){ return location.origin + location.pathname; }
+function b64url(buf){ return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function rnd(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a).slice(0, n); }
+function spSaved(){ try { return JSON.parse(localStorage.getItem('yapper_spotify') || 'null'); } catch(e){ return null; } }
+function spSave(t){ try { if (t) localStorage.setItem('yapper_spotify', JSON.stringify(t)); else localStorage.removeItem('yapper_spotify'); } catch(e){} }
+
+async function spStart(){
+  if (!SPOTIFY_CLIENT_ID) { toast('Spotify is not set up yet. See Settings > Connections.'); return; }
+  const verifier = rnd(64), state = rnd(16);
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  try { localStorage.setItem('sp_v', verifier); localStorage.setItem('sp_s', state); } catch(e){}
+  const url = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({client_id: SPOTIFY_CLIENT_ID, response_type: 'code', redirect_uri: spRedirect(),
+    scope: SPOTIFY_SCOPES, state, code_challenge_method: 'S256', code_challenge: challenge});
+  const w = window.open(url, 'spotify_login', 'width=480,height=720');
+  if (!w) { toast('Allow popups for this site, then try again.'); return; }
+  const onMsg = e => { if (e.origin === location.origin && e.data && e.data.spotify) { window.removeEventListener('message', onMsg); spConnected(); } };
+  window.addEventListener('message', onMsg);
+}
+// runs inside the popup after Spotify sends the user back with ?code=...
+async function spFinish(){
+  const q = new URLSearchParams(location.search);
+  document.body.innerHTML = '<p style="font-family:sans-serif;color:#fff;background:#13151c;padding:30px;margin:0;min-height:100vh">Connecting Spotify...</p>';
+  try {
+    const r = await fetch('https://accounts.spotify.com/api/token', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({client_id: SPOTIFY_CLIENT_ID, grant_type: 'authorization_code', code: q.get('code'), redirect_uri: spRedirect(), code_verifier: localStorage.getItem('sp_v') || ''})});
+    const j = await r.json(); if (!r.ok) throw new Error(j.error_description || 'Spotify said no');
+    spSave({access: j.access_token, refresh: j.refresh_token, exp: Date.now() + j.expires_in * 1000});
+    localStorage.removeItem('sp_s'); localStorage.removeItem('sp_v');
+    document.body.firstChild.textContent = 'Spotify connected. You can close this window.';
+    try { window.opener.postMessage({spotify: 'ok'}, location.origin); } catch(e){}
+    setTimeout(() => window.close(), 700);
+  } catch (e) { document.body.firstChild.textContent = 'Could not connect Spotify: ' + e.message; }
+}
+async function spToken(){
+  let t = spSaved(); if (!t) return null;
+  if (Date.now() < t.exp - 30000) return t.access;
+  try {
+    const r = await fetch('https://accounts.spotify.com/api/token', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({grant_type: 'refresh_token', refresh_token: t.refresh, client_id: SPOTIFY_CLIENT_ID})});
+    if (!r.ok) { spSave(null); return null; }
+    const j = await r.json(); t = {access: j.access_token, refresh: j.refresh_token || t.refresh, exp: Date.now() + j.expires_in * 1000}; spSave(t); return t.access;
+  } catch(e){ return null; }
+}
+let spTimer = null, spLastKey = '', spLastWrite = 0, spShow = true, spInfo = null;
+async function spConnected(){
+  const tok = await spToken(); if (!tok) return;
+  try {
+    const me2 = await (await fetch('https://api.spotify.com/v1/me', {headers: {Authorization: 'Bearer ' + tok}})).json();
+    spInfo = {name: String(me2.display_name || me2.id || 'Spotify user').slice(0, 40), url: (me2.external_urls && me2.external_urls.spotify) || '', show: true};
+    if (!spInfo.url.startsWith('https://open.spotify.com/')) spInfo.url = '';
+    await db.ref('connections/' + me.uid + '/spotify').set(spInfo);
+    toast('Spotify connected.'); spStartPolling(); if ($('modalRoot').firstChild) openSettings('connections');
+  } catch (e) { toast('Could not read your Spotify profile: ' + e.message); }
+}
+async function spDisconnect(){
+  spSave(null); clearInterval(spTimer); spTimer = null; spInfo = null;
+  await db.ref('connections/' + me.uid + '/spotify').remove().catch(() => {});
+  await db.ref('nowPlaying/' + me.uid).remove().catch(() => {});
+  toast('Spotify disconnected.'); renderUserbar();
+}
+function spStartPolling(){ clearInterval(spTimer); spPoll(); spTimer = setInterval(spPoll, 15000); }
+async function spClear(){ if (spLastKey) { spLastKey = ''; await db.ref('nowPlaying/' + me.uid).remove().catch(() => {}); } }
+async function spPoll(){
+  if (!spShow || document.hidden && Date.now() - spLastWrite > 600000) return;
+  const tok = await spToken(); if (!tok) { clearInterval(spTimer); return; }
+  try {
+    const r = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {headers: {Authorization: 'Bearer ' + tok}});
+    if (r.status === 204 || !r.ok) return spClear();
+    const j = await r.json(); if (!j || !j.item || !j.is_playing) return spClear();
+    const it = j.item, img = (it.album && it.album.images && it.album.images.length ? it.album.images[it.album.images.length - 1].url : '') || '';
+    const url = (it.external_urls && it.external_urls.spotify) || '';
+    const data = {t: String(it.name).slice(0, 100), a: (it.artists || []).map(a => a.name).join(', ').slice(0, 100), ts: TS};
+    if (img.startsWith('https://i.scdn.co/')) data.img = img; if (url.startsWith('https://open.spotify.com/')) data.url = url;
+    const key = data.t + '|' + data.a;
+    if (key !== spLastKey || Date.now() - spLastWrite > 60000) { spLastKey = key; spLastWrite = Date.now(); await db.ref('nowPlaying/' + me.uid).set(data); }
+  } catch(e){}
+}
+async function spotifyBoot(){
+  if (!SPOTIFY_CLIENT_ID || !spSaved()) return;
+  try { const s = await db.ref('connections/' + me.uid + '/spotify').get(); if (s.exists()) { spInfo = s.val(); spShow = spInfo.show !== false; } } catch(e){}
+  if (spInfo) spStartPolling();
+}
+// "Song - Artist" for friends lists
+async function nowPlayingText(uid){
+  try {
+    const [c, n] = await Promise.all([db.ref('connections/' + uid + '/spotify/show').get(), db.ref('nowPlaying/' + uid).get()]);
+    const d = n.val(); if (!d || c.val() === false || Date.now() - (d.ts || 0) > 180000) return '';
+    return 'Listening to ' + d.t + ' by ' + d.a;
+  } catch(e){ return ''; }
+}
+async function nowPlayingCard(uid){
+  try {
+    const [c, n] = await Promise.all([db.ref('connections/' + uid + '/spotify').get(), db.ref('nowPlaying/' + uid).get()]);
+    const conn = c.val(), d = n.val(); if (!conn || conn.show === false) return null;
+    const live = d && Date.now() - (d.ts || 0) < 180000;
+    const el = h(live && d.url && d.url.startsWith('https://open.spotify.com/') ? 'a' : 'div', 'np');
+    if (el.tagName === 'A') { el.href = d.url; el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+    if (live && d.img && d.img.startsWith('https://i.scdn.co/')) { const im = h('img'); im.src = d.img; im.alt = ''; el.appendChild(im); }
+    else { const b = h('div'); b.style.cssText = 'width:46px;height:46px;border-radius:8px;background:#1db95433;color:#1db954;display:flex;align-items:center;justify-content:center;flex:none'; b.innerHTML = svg('music', 22); el.appendChild(b); }
+    const t = h('div'); t.style.minWidth = 0;
+    t.appendChild(h('div', 's', live ? 'LISTENING ON SPOTIFY' : 'SPOTIFY'));
+    t.appendChild(h('div', 't', live ? d.t : conn.name)); t.appendChild(h('div', 'a', live ? d.a : 'Not listening right now'));
+    el.appendChild(t); return el;
+  } catch(e){ return null; }
+}
+if (SP_POPUP) spFinish();
+
+/* ================= SETTINGS ================= */
+let setSection = 'account';
+function openSettings(section){
+  if (section) setSection = section;
+  modal(card => {
+    card.classList.add('xl');
+    const top = h('div'); top.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px';
+    top.appendChild(h('h3', null, 'Settings')); top.appendChild(ibtn('x', 'Close', closeModal)); card.appendChild(top);
+    const wrap = h('div', 'setwrap'), nav = h('div', 'setnav'), body = h('div', 'setbody');
+    const secs = [['account', 'My account', 'user'], ['profile', 'Profile', 'image'], ['security', 'Security', 'lock'], ['privacy', 'Privacy and safety', 'shield'],
+      ['notifications', 'Notifications', 'bell'], ['devices', 'Devices', 'screen'], ['connections', 'Connections', 'link']];
+    secs.forEach(([k, l, ic]) => { const b = btnIcon(l, ic, setSection === k ? 'on' : '', () => openSettings(k)); nav.appendChild(b); });
+    wrap.append(nav, body); card.appendChild(wrap);
+    ({account: setAccount, profile: setProfile, security: setSecurity, privacy: setPrivacy, notifications: setNotif, devices: setDevices, connections: setConnections}[setSection] || setAccount)(body);
+  });
+}
+function setRow(k, v, btnLabel, fn, danger){
+  const r = h('div', 'setrow'), g = h('div', 'grow'); g.appendChild(h('div', 'k', k)); if (v != null) g.appendChild(h('div', 'v', v)); r.appendChild(g);
+  if (btnLabel) { const b = h('button', danger ? 'danger' : 'ghost', btnLabel); b.onclick = fn; r.appendChild(b); }
+  return r;
+}
+function isFakeAcct(){ return (auth.currentUser.email || '').endsWith(FAKE_DOMAIN); }
+
+async function setAccount(body){
+  const u = auth.currentUser, fake = isFakeAcct();
+  body.appendChild(h('h4', null, 'My account'));
+  body.appendChild(setRow('Status', STATUS[myStatus][0], 'Change', () => {
+    overlay2(c => {
+      c.appendChild(h('h3', null, 'Set your status')); c.appendChild(h('div', 'sub', 'Invisible hides that you are online. Idle is set automatically after 5 minutes of inactivity.'));
+      Object.keys(STATUS).forEach(k => { const b = h('button', 'menuitem' + (k === myStatus ? ' on' : ''), STATUS[k][0]); b.style.borderLeft = '4px solid ' + STATUS[k][1]; b.onclick = () => { setStatus(k); closeModal2(); openSettings('account'); }; c.appendChild(b); });
+    });
+  }));
+  body.appendChild(setRow('Username', '@' + me.name + (fake ? '  (you sign in with this)' : ''), fake ? null : 'Change', async () => {
+    const v = await ask('Change username', 'Your old username becomes free for others. 3-20 letters, numbers or underscores.', [{label: 'New username', value: me.name, max: 20}], 'Change');
+    if (!v) return; const raw = v[0].trim(), name = cleanName(raw);
+    if (!validName(name) || name === ADMIN_NAME) { toast('That username is not allowed.'); sfx.error(); return; }
+    if (name === me.name && raw === myProfile.name) return;
+    try {
+      if (name !== me.name) {
+        const ex = await db.ref('usernames/' + name).get(); if (ex.exists() && ex.val() !== me.uid) { toast('That username is taken.'); sfx.error(); return; }
+        if (!ex.exists()) await db.ref('usernames/' + name).set(me.uid);
+        await db.ref('usernameKinds/' + name).set('e');
+      }
+      await db.ref('profiles/' + me.uid + '/name').set(raw);
+      if (name !== me.name) { await db.ref('usernameKinds/' + me.name).remove().catch(() => {}); await db.ref('usernames/' + me.name).remove().catch(() => {}); delete uidCache[me.name]; }
+      me.name = name; myProfile = await getProfile(me.uid, true); renderUserbar(); sfx.join(); toast('Username changed.'); openSettings('account');
+    } catch (e) { sfx.error(); toast('Could not change username: ' + e.message); }
+  }));
+  if (fake) { const n = h('div', 'note2', 'To change your username, first add an email below. Accounts that sign in with a username can\'t be renamed because the username is also the login.'); body.appendChild(n); }
+  body.appendChild(setRow('Display name', myProfile.displayName || '(same as username)', 'Change', async () => {
+    const v = await ask('Display name', 'This is the name people see in chats. Any characters, up to 24. Leave empty to use your username.', [{label: 'Display name', value: myProfile.displayName || '', max: 24}], 'Save');
+    if (!v) return; const d = v[0].trim().slice(0, 24);
+    try { await db.ref('profiles/' + me.uid + '/displayName').set(d || null); myProfile = await getProfile(me.uid, true); renderUserbar(); toast('Saved.'); openSettings('account'); }
+    catch (e) { toast('Could not save: ' + e.message); }
+  }));
+  body.appendChild(setRow('Email', fake ? 'No email added' : u.email, fake ? 'Add email' : 'Change', async () => {
+    const v = await ask(fake ? 'Add an email' : 'Change email', 'We email a confirmation link to the new address. ' + (fake ? 'After you confirm, you sign in with that email and the same password (not your old username).' : ''), [{label: 'New email', type: 'email', max: 80}], 'Send link');
+    if (!v) return; const em = v[0].trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em) || em.endsWith(FAKE_DOMAIN)) { toast('Enter a real email address.'); return; }
+    if (!(await reauth())) return;
+    try { await auth.currentUser.verifyBeforeUpdateEmail(em); toast('Check ' + em + ' and click the link to finish.'); } catch (e) { toast(friendly(e)); sfx.error(); }
+  }));
+  const ph = await db.ref('private/' + me.uid + '/phone').get().then(s => s.val() || '').catch(() => '');
+  body.appendChild(setRow('Phone number', ph ? ph + '  (not verified)' : 'Not set', ph ? 'Change' : 'Add', async () => {
+    const v = await ask('Phone number', 'Only you can see this. It is saved but not verified (text-message verification needs a paid Firebase plan).', [{label: 'Phone number', type: 'tel', value: ph, max: 20}], 'Save');
+    if (!v) return; const n = v[0].trim();
+    if (n && !/^\+?[0-9 ()-]{6,20}$/.test(n)) { toast('That does not look like a phone number.'); sfx.error(); return; }
+    try { await db.ref('private/' + me.uid + '/phone').set(n || null); toast('Saved.'); openSettings('account'); } catch (e) { toast('Could not save: ' + e.message); }
+  }));
+  const dz = h('div'); dz.style.marginTop = '22px'; dz.appendChild(h('label', 'l', 'Danger zone'));
+  dz.appendChild(setRow('Delete account', 'Removes your profile and frees your username. This cannot be undone.', 'Delete', deleteMyAccount, true));
+  body.appendChild(dz);
+}
+async function deleteMyAccount(){
+  if (!confirm('Delete your account permanently?')) return;
+  if (!(await reauth())) return;
+  try {
+    const uid = me.uid, nm = me.name;
+    if (call) await leaveCall();
+    await db.ref('presence/' + uid).remove().catch(() => {}); await db.ref('devices/' + uid).remove().catch(() => {});
+    await db.ref('sessions/' + uid).remove().catch(() => {}); await db.ref('connections/' + uid).remove().catch(() => {});
+    await db.ref('nowPlaying/' + uid).remove().catch(() => {}); await db.ref('private/' + uid).remove().catch(() => {});
+    await db.ref('usernameKinds/' + nm).remove().catch(() => {}); await db.ref('usernames/' + nm).remove().catch(() => {});
+    await db.ref('profiles/' + uid).remove().catch(() => {});
+    await auth.currentUser.delete(); location.reload();
+  } catch (e) { sfx.error(); toast('Could not delete: ' + friendly(e)); }
+}
+function setProfile(body){
+  body.appendChild(h('h4', null, 'Profile'));
+  body.appendChild(setRow('Picture, banner, color and about me', 'Make your profile look the way you want.', 'Edit profile', editProfile));
+  const prev = h('div'); prev.style.marginTop = '14px'; body.appendChild(prev);
+  const banner = h('div'); banner.style.cssText = 'height:90px;border-radius:14px;background-size:cover;background-position:center;' + (isImg(myProfile.banner) ? 'background-image:url(' + myProfile.banner + ')' : 'background:linear-gradient(135deg,' + (myProfile.color || '#7c6cff') + ',' + (myProfile.color || '#7c6cff') + '44)');
+  prev.appendChild(banner); const av = avatarEl(myProfile, 72); av.style.cssText += ';margin:-34px 0 0 16px;border:5px solid var(--side)'; prev.appendChild(av);
+  const n = h('div', 'pname', dispName(myProfile)); n.style.cssText = 'padding:6px 4px;font-size:20px;color:' + (myProfile.color || '#fff'); prev.appendChild(n);
+}
+function setSecurity(body){
+  body.appendChild(h('h4', null, 'Security'));
+  body.appendChild(setRow('Password', 'Change the password you sign in with.', 'Change', async () => {
+    const v = await ask('Change password', 'Use at least 6 characters. Changing it signs out your other devices after a while.', [{label: 'New password', type: 'password'}, {label: 'Repeat new password', type: 'password'}], 'Change');
+    if (!v) return; if (v[0].length < 6) { toast('Password must be at least 6 characters.'); sfx.error(); return; } if (v[0] !== v[1]) { toast('The two passwords do not match.'); sfx.error(); return; }
+    if (!(await reauth())) return;
+    try { await auth.currentUser.updatePassword(v[0]); sfx.join(); toast('Password changed.'); } catch (e) { sfx.error(); toast(friendly(e)); }
+  }));
+  const w = h('div', 'warnbox'); w.innerHTML = '<b>Two-factor authentication is not available yet.</b> Firebase only offers text-message and authenticator-app codes on its paid plan, and a code check done inside this page could be skipped by anyone who knows the password. When the project moves to a paid Firebase plan, this is where it goes. For now, a strong unique password is your best protection.';
+  body.appendChild(w);
+  body.appendChild(setRow('Where you are signed in', 'See every device and log any of them out.', 'View devices', () => openSettings('devices')));
+}
+async function setPrivacy(body){
+  body.appendChild(h('h4', null, 'Privacy and safety'));
+  const sel = (opts, cur, fn) => { const s = h('select'); opts.forEach(([v, l]) => { const o = h('option', null, l); o.value = v; if (v === cur) o.selected = true; s.appendChild(o); }); s.onchange = () => fn(s.value); return s; };
+  const r1 = setRow('Who can message me', 'Applies to new direct messages and calls.'); r1.appendChild(sel([['everyone', 'Everyone'], ['friends', 'Friends only'], ['none', 'Nobody']], myPrivacy.dm, v => { db.ref('privacy/' + me.uid + '/dm').set(v).then(() => toast('Saved.')).catch(e => toast(e.message)); }));
+  body.appendChild(r1);
+  const r2 = setRow('Who can send me friend requests'); r2.appendChild(sel([['everyone', 'Everyone'], ['none', 'Nobody']], myPrivacy.req, v => { db.ref('privacy/' + me.uid + '/req').set(v).then(() => toast('Saved.')).catch(e => toast(e.message)); }));
+  body.appendChild(r2);
+  const r3 = setRow('Show what I\'m listening to', 'Friends and anyone who opens your profile can see your Spotify song.');
+  r3.appendChild(toggle(spShow, async on => { spShow = on; if (spInfo) { spInfo.show = on; await db.ref('connections/' + me.uid + '/spotify/show').set(on).catch(() => {}); if (!on) spClear(); else spPoll(); } }, !spInfo));
+  body.appendChild(r3);
+  body.appendChild(h('label', 'l', 'Blocked users'));
+  const ids = Object.keys(blocks); if (!ids.length) body.appendChild(h('div', 'hint', 'You have not blocked anyone.'));
+  ids.forEach(u => body.appendChild(friendRow(u, [btnIcon('Unblock', 'check', 'ghost', () => { unblockUser(u); setTimeout(() => openSettings('privacy'), 300); })])));
+}
+function setNotif(body){
+  body.appendChild(h('h4', null, 'Notifications'));
+  const granted = 'Notification' in window && Notification.permission === 'granted';
+  body.appendChild(setRow('Desktop and phone notifications', granted ? 'On for this device' : ('Notification' in window && Notification.permission === 'denied' ? 'Blocked. Allow them in your browser\'s site settings.' : 'Off for this device'), granted ? null : 'Turn on', async () => { await enableNotifications(); openSettings('notifications'); }));
+  [['dm', 'Direct messages', 'When someone messages you.'], ['call', 'Calls', 'When someone is calling you.'], ['friend', 'Friend requests', 'When someone wants to be your friend.']].forEach(([k, t, d]) => {
+    const r = setRow(t, d); r.appendChild(toggle(notifPrefs[k], on => { notifPrefs[k] = on; saveNotifPrefs(); })); body.appendChild(r);
+  });
+  const r = setRow('Sound effects', 'Message, call and voice sounds.'); r.appendChild(toggle(!muted, on => { muted = !on; try { localStorage.setItem('yapper_muted', muted ? '1' : '0'); } catch(e){} renderUserbar(); if (on) sfx.join(); })); body.appendChild(r);
+  body.appendChild(h('div', 'note2', 'Notifications appear while Yapper is open in a tab or window, even if you are on another tab or app. When every Yapper tab is closed, browsers cannot deliver them without a paid push server. Do Not Disturb silences them.'));
+}
+async function setDevices(body){
+  body.appendChild(h('h4', null, 'Devices'));
+  body.appendChild(h('div', 'note2', 'Logging out another device signs it out the next time it is online. If you think someone else has your password, also change it.'));
+  const list = h('div'); body.appendChild(list);
+  try {
+    const all = (await db.ref('devices/' + me.uid).get()).val() || {};
+    const ids = Object.keys(all).sort((a, b) => (all[b].last || 0) - (all[a].last || 0));
+    ids.forEach(id => {
+      const d = all[id], cur = id === DEVICE_ID, row = h('div', 'setrow'); row.appendChild(iconEl(devIcon(d.type), 24));
+      const g = h('div', 'grow'); g.appendChild(h('div', 'k', (d.label || 'Device') + (cur ? '  (this device)' : '')));
+      g.appendChild(h('div', 'v', 'Last active ' + new Date(d.last || Date.now()).toLocaleString([], {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}))); row.appendChild(g);
+      if (!cur) { const b = h('button', 'danger', 'Log out'); b.onclick = async () => { await db.ref('devices/' + me.uid + '/' + id + '/revoked').set(true).catch(e => toast(e.message)); toast('That device will be logged out.'); setTimeout(() => openSettings('devices'), 400); }; row.appendChild(b); }
+      list.appendChild(row);
+    });
+    if (ids.length > 1) body.appendChild(btnIcon('Log out all other devices', 'logout', 'danger', async () => {
+      for (const id of ids) if (id !== DEVICE_ID) await db.ref('devices/' + me.uid + '/' + id + '/revoked').set(true).catch(() => {});
+      toast('Other devices will be logged out.'); setTimeout(() => openSettings('devices'), 400);
+    }));
+  } catch (e) { list.appendChild(h('div', 'hint', 'Could not load devices: ' + e.message)); }
+}
+function setConnections(body){
+  body.appendChild(h('h4', null, 'Connections'));
+  const row = h('div', 'setrow'); const ic = h('div'); ic.style.cssText = 'width:40px;height:40px;border-radius:10px;background:#1db95426;color:#1db954;display:flex;align-items:center;justify-content:center'; ic.innerHTML = svg('music', 22); row.appendChild(ic);
+  const g = h('div', 'grow'); g.appendChild(h('div', 'k', 'Spotify')); g.appendChild(h('div', 'v', spInfo ? 'Connected as ' + spInfo.name : 'Show the song you are listening to on your profile')); row.appendChild(g);
+  if (SPOTIFY_CLIENT_ID) {
+    if (spInfo) { const b = h('button', 'danger', 'Disconnect'); b.onclick = async () => { await spDisconnect(); openSettings('connections'); }; row.appendChild(b); }
+    else { const b = h('button', null, 'Connect'); b.onclick = spStart; row.appendChild(b); }
+  }
+  body.appendChild(row);
+  if (!SPOTIFY_CLIENT_ID) {
+    const w = h('div', 'warnbox'); w.innerHTML = '<b>Spotify needs one-time setup by the site owner:</b><br>1. Go to developer.spotify.com/dashboard and create an app.<br>2. Add this Redirect URI to the app: <b id="rdu"></b><br>3. Copy the app\'s Client ID into <b>SPOTIFY_CLIENT_ID</b> near the top of the Spotify section in PlayLabYapper.html.<br>4. In the Spotify app\'s <b>User Management</b>, add the email of every person who will connect (Spotify limits new apps to 25 people).';
+    body.appendChild(w); w.querySelector('#rdu').textContent = spRedirect();
+  }
+  body.appendChild(h('div', 'note2', 'Your Spotify login stays on this device only. Yapper reads the current song and shares just the title, artist and cover with people allowed to see your profile.'));
+}
 
 </script>
 </body>

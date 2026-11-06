@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Links</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --text: #1c1e21; --muted: #6b7280;
+    --accent: #5b6cff; --border: #e3e5ea; --menu: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12131a; --card: #1c1e2a; --text: #f1f2f6; --muted: #9aa0b4;
+      --accent: #7c8aff; --border: #2b2e3f; --menu: #242738;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 40px 20px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+  }
+  h1 { text-align: center; margin: 0 0 8px; font-size: 2rem; }
+  p.sub { text-align: center; color: var(--muted); margin: 0 0 12px; }
+  .toolbar { text-align: center; margin-bottom: 28px; }
+  .toolbar button, .dialog button {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 14px; font: inherit; cursor: pointer;
+  }
+  .toolbar button:hover, .dialog button:hover { border-color: var(--accent); }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px; max-width: 900px; margin: 0 auto;
+  }
+  h2.section { max-width: 900px; margin: 36px auto 14px; font-size: 1.2rem; }
+  .app {
+    position: relative; background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; transition: transform .15s ease, border-color .15s ease;
+  }
+  .app:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .app > a {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 32px 16px; color: var(--text); text-decoration: none; height: 100%;
+  }
+  .icon {
+    width: 64px; height: 64px; border-radius: 16px; background: var(--accent);
+    display: grid; place-items: center; font-size: 30px; color: #fff;
+  }
+  .logo {
+    width: 100%; height: 110px; object-fit: contain; border-radius: 12px;
+    background: #0b0b0d; padding: 10px;
+  }
+  .title { font-weight: 600; font-size: 1.1rem; }
+
+  /* three-lines button */
+  .menu-btn {
+    position: absolute; top: 10px; right: 10px; width: 34px; height: 34px;
+    border-radius: 10px; border: 1px solid var(--border); background: var(--menu);
+    color: var(--text); font-size: 18px; line-height: 1; cursor: pointer;
+    opacity: 0; transition: opacity .15s ease; z-index: 2;
+  }
+  .app:hover .menu-btn, .menu-btn:focus, .app.open .menu-btn { opacity: 1; }
+  @media (hover: none) { .menu-btn { opacity: 1; } }
+  .menu {
+    position: absolute; top: 50px; right: 10px; min-width: 190px; z-index: 5;
+    background: var(--menu); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25); padding: 6px; display: none;
+  }
+  .app.open .menu { display: block; }
+  .menu button {
+    display: block; width: 100%; text-align: left; background: none; border: 0;
+    color: var(--text); font: inherit; padding: 9px 10px; border-radius: 8px; cursor: pointer;
+  }
+  .menu button:hover { background: var(--bg); }
+
+  /* settings dialog */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none;
+    align-items: center; justify-content: center; padding: 20px; z-index: 20;
+  }
+  .overlay.show { display: flex; }
+  .dialog {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px; width: 100%; max-width: 520px;
+  }
+  .dialog h2 { margin: 0 0 8px; }
+  .dialog p { color: var(--muted); font-size: .92rem; line-height: 1.45; margin: 6px 0; }
+  .dialog code { background: var(--bg); padding: 1px 5px; border-radius: 5px; }
+  .dialog input {
+    width: 100%; margin: 10px 0; padding: 10px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit;
+  }
+  .dialog .row { display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+  <h1>Game Links</h1>
+  <p class="sub">Hover an app and click ☰ to choose how to open it</p>
+  <div class="toolbar"><button id="openSettings">⚙ Proxy settings</button></div>
+
+  <div class="grid">
+    <div class="app" data-url="https://fiveplay.lol/">
+      <a href="https://fiveplay.lol/" target="_blank" rel="noopener noreferrer">
+        <img class="logo" src="https://fiveplay.lol/b/8b0b5899ed/title/fiveplay_logo.png" alt="Gta5" onerror="this.outerHTML='<div class=&quot;icon&quot;>🎮</div>'">
+        <div class="title">Gta5</div>
+      </a>
+    </div>
+    <div class="app" data-url="https://fortniteog.lol/">
+      <a href="https://fortniteog.lol/" target="_blank" rel="noopener noreferrer">
+        <img class="logo" src="https://fortniteog.lol/assets/logo.png" alt="Fortnite OG" onerror="this.outerHTML='<div class=&quot;icon&quot;>🎮</div>'">
+        <div class="title">Fortnite OG</div>
+      </a>
+    </div>
+    <div class="app" data-url="https://cyberpunk2077.lol/">
+      <a href="https://cyberpunk2077.lol/" target="_blank" rel="noopener noreferrer">
+        <img class="logo" src="https://cyberpunk2077.lol/assets/logo.png" alt="Cyberpunk 2077" onerror="this.outerHTML='<div class=&quot;icon&quot;>🎮</div>'">
+        <div class="title">Cyberpunk 2077</div>
+      </a>
+    </div>
+    <div class="app" data-url="https://skate.aaddpp.lol/">
+      <a href="https://skate.aaddpp.lol/" target="_blank" rel="noopener noreferrer">
+        <div class="icon">🎮</div>
+        <div class="title">Skate 3</div>
+      </a>
+    </div>
+    <div class="app" data-url="https://v2.fiveplay.lol/launcher.html">
+      <a href="https://v2.fiveplay.lol/launcher.html" target="_blank" rel="noopener noreferrer">
+        <div class="icon">🎮</div>
+        <div class="title">GrandTheftAuto5v2</div>
+      </a>
+    </div>
+    <div class="app">
+      <a href="#" onclick="return false;">
+        <div class="icon">🚫</div>
+        <div class="title">Blocked</div>
+      </a>
+    </div>
+  </div>
+
+  <h2 class="section">Launchers</h2>
+  <div class="grid">
+    <div class="app" data-url="https://playtab.fun/">
+      <a href="https://playtab.fun/" target="_blank" rel="noopener noreferrer">
+        <div class="icon">📌</div>
+        <div class="title">Best [pinned]</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="dialog">
+      <h2>Proxy settings</h2>
+      <p>Paste your proxy address. Use <code>{url}</code> where the game link goes (use <code>{enc}</code> for the URL-encoded version).</p>
+      <p>Example: <code>https://your-proxy.example.com/go?u={enc}</code></p>
+      <input id="proxyInput" type="text" placeholder="https://your-proxy.example.com/go?u={enc}">
+      <div class="row">
+        <button id="cancelSettings">Cancel</button>
+        <button id="saveSettings">Save</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  var KEY = 'gamelinks_proxy';
+  function getProxy() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
+  function setProxy(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+
+  function proxied(url) {
+    var tpl = getProxy();
+    if (!tpl) return null;
+    return tpl.split('{enc}').join(encodeURIComponent(url)).split('{url}').join(url);
+  }
+
+  function blobOpen(target) {
+    var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Google Docs</title>' +
+      '<style>html,body{margin:0;height:100%;background:#000}iframe{border:0;width:100%;height:100%}</style>' +
+      '</head><body><iframe src="' + target.replace(/"/g, '&quot;') +
+      '" allow="fullscreen; autoplay; gamepad; clipboard-write" allowfullscreen></iframe></body></html>';
+    var blob = new Blob([html], { type: 'text/html' });
+    var w = window.open(URL.createObjectURL(blob), '_blank');
+    if (!w) alert('Pop-up blocked. Allow pop-ups for this page and try again.');
+  }
+
+  function needProxy() {
+    alert('Set your proxy address first (⚙ Proxy settings).');
+    openSettings();
+  }
+
+  function act(kind, url) {
+    if (kind === 'tab') {
+      window.open(url, '_blank', 'noopener');
+    } else if (kind === 'blob') {
+      blobOpen(url);
+    } else if (kind === 'proxy') {
+      var p = proxied(url); if (!p) return needProxy();
+      window.open(p, '_blank', 'noopener');
+    } else if (kind === 'proxyblob') {
+      var q = proxied(url); if (!q) return needProxy();
+      blobOpen(q);
+    }
+  }
+
+  var labels = [
+    ['tab', 'Open in new tab'],
+    ['blob', 'Open in blob'],
+    ['proxy', 'Open in proxy'],
+    ['proxyblob', 'Open proxy in blob']
+  ];
+
+  function closeAll() {
+    document.querySelectorAll('.app.open').forEach(function (a) { a.classList.remove('open'); });
+  }
+
+  document.querySelectorAll('.app[data-url]').forEach(function (app) {
+    var url = app.getAttribute('data-url');
+    var btn = document.createElement('button');
+    btn.className = 'menu-btn'; btn.type = 'button';
+    btn.setAttribute('aria-label', 'Open options'); btn.textContent = '☰';
+    var menu = document.createElement('div');
+    menu.className = 'menu';
+    labels.forEach(function (l) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = l[1];
+      b.addEventListener('click', function (e) { e.stopPropagation(); closeAll(); act(l[0], url); });
+      menu.appendChild(b);
+    });
+    btn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var was = app.classList.contains('open');
+      closeAll();
+      if (!was) app.classList.add('open');
+    });
+    app.appendChild(btn); app.appendChild(menu);
+  });
+  document.addEventListener('click', closeAll);
+
+  var overlay = document.getElementById('overlay');
+  var input = document.getElementById('proxyInput');
+  function openSettings() { input.value = getProxy(); overlay.classList.add('show'); }
+  document.getElementById('openSettings').addEventListener('click', openSettings);
+  document.getElementById('cancelSettings').addEventListener('click', function () { overlay.classList.remove('show'); });
+  document.getElementById('saveSettings').addEventListener('click', function () {
+    setProxy(input.value.trim()); overlay.classList.remove('show');
+  });
+})();
+</script>
+</body>
+</html>

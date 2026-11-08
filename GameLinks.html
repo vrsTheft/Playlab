@@ -146,13 +146,19 @@
         <div class="title">Best [pinned]</div>
       </a>
     </div>
+    <div class="app" data-url="https://vrstheft.github.io/firefox/">
+      <a href="https://vrstheft.github.io/firefox/" target="_blank" rel="noopener noreferrer">
+        <div class="icon">🦊</div>
+        <div class="title">Firefox</div>
+      </a>
+    </div>
   </div>
 
   <div class="overlay" id="overlay">
     <div class="dialog">
       <h2>Proxy settings</h2>
-      <p>Paste your proxy address. Use <code>{url}</code> where the game link goes (use <code>{enc}</code> for the URL-encoded version).</p>
-      <p>Example: <code>https://your-proxy.example.com/go?u={enc}</code></p>
+      <p>Paste your custom proxy address below (optional). Use <code>{url}</code> where the game link goes (or <code>{enc}</code> for URL-encoded).</p>
+      <p>Default behavior downloads and displays the page content locally (Guest Browser style).</p>
       <input id="proxyInput" type="text" placeholder="https://your-proxy.example.com/go?u={enc}">
       <div class="row">
         <button id="cancelSettings">Cancel</button>
@@ -173,19 +179,40 @@
     return tpl.split('{enc}').join(encodeURIComponent(url)).split('{url}').join(url);
   }
 
+  // Guest browser viewer: fetches raw page HTML through CORS proxy and displays it locally
   function blobOpen(target) {
-    var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Google Docs</title>' +
-      '<style>html,body{margin:0;height:100%;background:#000}iframe{border:0;width:100%;height:100%}</style>' +
-      '</head><body><iframe src="' + target.replace(/"/g, '&quot;') +
-      '" allow="fullscreen; autoplay; gamepad; clipboard-write" allowfullscreen></iframe></body></html>';
-    var blob = new Blob([html], { type: 'text/html' });
-    var w = window.open(URL.createObjectURL(blob), '_blank');
-    if (!w) alert('Pop-up blocked. Allow pop-ups for this page and try again.');
-  }
+    var win = window.open('about:blank', '_blank');
+    if (!win) {
+      alert('Pop-up blocked. Allow pop-ups for this page and try again.');
+      return;
+    }
 
-  function needProxy() {
-    alert('Set your proxy address first (⚙ Proxy settings).');
-    openSettings();
+    win.document.write('<!DOCTYPE html><html><head><title>Loading...</title><style>body{margin:0;background:#12131a;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh}</style></head><body>Downloading page content...</body></html>');
+
+    var proxyFetchUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(target);
+    fetch(proxyFetchUrl)
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data || !data.contents) throw new Error('Failed to retrieve content');
+        var htmlContent = data.contents;
+        var doc = win.document;
+        doc.open();
+        doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Google Docs</title>' +
+          '<style>html,body{margin:0;height:100%;background:#000}iframe{border:0;width:100%;height:100%}</style>' +
+          '</head><body><iframe allow="fullscreen; autoplay; gamepad; clipboard-write" allowfullscreen></iframe></body></html>');
+        doc.close();
+        var iframe = doc.querySelector('iframe');
+        iframe.srcdoc = htmlContent;
+      })
+      .catch(function(err) {
+        var doc = win.document;
+        doc.open();
+        doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Google Docs</title>' +
+          '<style>html,body{margin:0;height:100%;background:#000}iframe{border:0;width:100%;height:100%}</style>' +
+          '</head><body><iframe src="' + target.replace(/"/g, '&quot;') +
+          '" allow="fullscreen; autoplay; gamepad; clipboard-write" allowfullscreen></iframe></body></html>');
+        doc.close();
+      });
   }
 
   function act(kind, url) {
@@ -194,17 +221,25 @@
     } else if (kind === 'blob') {
       blobOpen(url);
     } else if (kind === 'proxy') {
-      var p = proxied(url); if (!p) return needProxy();
-      window.open(p, '_blank', 'noopener');
+      var p = proxied(url); 
+      if (!p) {
+        blobOpen(url);
+      } else {
+        window.open(p, '_blank', 'noopener');
+      }
     } else if (kind === 'proxyblob') {
-      var q = proxied(url); if (!q) return needProxy();
-      blobOpen(q);
+      var q = proxied(url); 
+      if (!q) {
+        blobOpen(url);
+      } else {
+        blobOpen(q);
+      }
     }
   }
 
   var labels = [
     ['tab', 'Open in new tab'],
-    ['blob', 'Open in blob'],
+    ['blob', 'Open in blob (Guest Proxy)'],
     ['proxy', 'Open in proxy'],
     ['proxyblob', 'Open proxy in blob']
   ];

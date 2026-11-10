@@ -32,6 +32,35 @@
             padding-bottom: 70px;
         }
 
+        /* Blue top banner */
+        #topBanner {
+            background: #2563eb;
+            color: #fff;
+            font-size: 13px;
+            padding: 9px 40px 9px 16px;
+            text-align: center;
+            position: relative;
+            line-height: 1.4;
+        }
+
+        #topBanner .banner-x {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0.8;
+            padding: 2px 6px;
+        }
+
+        #topBanner .banner-x:hover {
+            opacity: 1;
+        }
+
         /* Header / Navbar */
         header {
             display: flex;
@@ -389,7 +418,7 @@
             transform: scale(1.05);
         }
 
-        /* Welcome Popup */
+        /* Welcome Popup (warning) */
         #welcomePopup {
             position: fixed;
             inset: 0;
@@ -411,10 +440,18 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
         }
 
+        .welcome-card.warning {
+            border-color: #ef4444;
+        }
+
         .welcome-card h2 {
             color: var(--accent-color);
             font-size: 24px;
             margin-bottom: 12px;
+        }
+
+        .welcome-card.warning h2 {
+            color: #ef4444;
         }
 
         .welcome-card p {
@@ -435,12 +472,24 @@
             cursor: pointer;
         }
 
-        .welcome-card button:hover {
+        .welcome-card button:disabled {
+            background: #3f3f46;
+            color: #a1a1aa;
+            cursor: not-allowed;
+        }
+
+        .welcome-card button:not(:disabled):hover {
             filter: brightness(1.1);
         }
     </style>
 </head>
 <body>
+
+    <!-- Blue Banner -->
+    <div id="topBanner">
+        I will be updating most games to work soon and adding some apps like sound buttons and private hidden Spotify!
+        <button class="banner-x" onclick="document.getElementById('topBanner').style.display='none'" title="Hide">&#10005;</button>
+    </div>
 
     <!-- Header -->
     <header>
@@ -511,12 +560,12 @@
         <i class="fas fa-shield-alt"></i> <span id="safeModeText">SAFE MODE: ON</span>
     </button>
 
-    <!-- Welcome Popup -->
-    <div id="welcomePopup" onclick="if(event.target===this)closeWelcomePopup()">
-        <div class="welcome-card">
-            <h2>Read Below:</h2>
-            <p>We are updating our apps and games that don't work! If you want us to add games click the top right corner!</p>
-            <button onclick="closeWelcomePopup()">Got it!</button>
+    <!-- Welcome Popup (warning, locked for 3 seconds) -->
+    <div id="welcomePopup">
+        <div class="welcome-card warning">
+            <h2>&#9888;&#65039; WARNING</h2>
+            <p>Pay the owner 2 Husky Bucks or this site will be deleted I am low on husky bucks cuz 😭</p>
+            <button id="welcomeBtn" disabled>Wait 3...</button>
         </div>
     </div>
 
@@ -580,10 +629,26 @@
             checkSavedUser();
         });
 
-        // Welcome popup
+        // Welcome popup (locked until the 3 second countdown finishes)
         function closeWelcomePopup() {
             document.getElementById('welcomePopup').style.display = 'none';
         }
+
+        (function startWelcomeCountdown() {
+            let left = 3;
+            const btn = document.getElementById('welcomeBtn');
+            const timer = setInterval(() => {
+                left--;
+                if (left > 0) {
+                    btn.textContent = 'Wait ' + left + '...';
+                } else {
+                    clearInterval(timer);
+                    btn.textContent = 'Got it!';
+                    btn.disabled = false;
+                    btn.onclick = closeWelcomePopup;
+                }
+            }, 1000);
+        })();
 
         // Safe Mode Toggle
         function toggleSafeMode() {
